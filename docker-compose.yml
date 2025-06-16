@@ -1,18 +1,18 @@
 version: '3.8'
 
 services:
-  # MySQL Database for WordPress
+  # MariaDB Database for WordPress
   mysql:
-    image: mysql:8.0
-    container_name: wp-mysql
+    image: mariadb:10.6
+    container_name: wp-mariadb
     restart: unless-stopped
     environment:
-      MYSQL_DATABASE: wordpress
-      MYSQL_USER: wordpress
-      MYSQL_PASSWORD: wordpress_password
-      MYSQL_ROOT_PASSWORD: root_password
+      MARIADB_DATABASE: wordpress
+      MARIADB_USER: wordpress
+      MARIADB_PASSWORD: wordpress_password
+      MARIADB_ROOT_PASSWORD: root_password
     volumes:
-      - mysql_data:/var/lib/mysql
+      - mariadb_data:/var/lib/mysql
     networks:
       - wp-network
     ports:
@@ -71,7 +71,7 @@ services:
       - "8000:8000"
 
 volumes:
-  mysql_data:
+  mariadb_data:
   wordpress_data:
   openwebui_data:
 

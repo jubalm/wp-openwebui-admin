@@ -14,7 +14,7 @@ This document reports on the successful implementation of a Proof of Concept (Po
 - **Status**: Complete
 - **Implementation**: Docker Compose with WordPress:latest
 - **Access**: http://localhost:8080
-- **Database**: MySQL 8.0 with persistent storage
+- **Database**: MariaDB 10.6 with persistent storage
 
 ### ✅ 2. MCP Plugin Installation and Configuration
 - **Status**: Complete
@@ -61,7 +61,7 @@ This document reports on the successful implementation of a Proof of Concept (Po
                                              │
                                              ▼
                                     ┌─────────────────┐
-                                    │     MySQL       │
+                                    │    MariaDB      │
                                     │   (Port 3306)   │
                                     └─────────────────┘
 ```
@@ -73,7 +73,7 @@ This document reports on the successful implementation of a Proof of Concept (Po
 - **Custom Plugin**: MCP Integration Plugin
 - **API Endpoints**: 5 REST endpoints for CRUD operations
 - **Authentication**: API key and WordPress user authentication
-- **Database**: MySQL 8.0 with persistent volumes
+- **Database**: MariaDB 10.6 with persistent volumes
 
 #### 2. OpenWebUI Instance
 - **Base Image**: ghcr.io/open-webui/open-webui:main
@@ -164,7 +164,7 @@ All CRUD operations have been successfully validated:
 
 ### 4. Data Persistence
 - **Challenge**: Ensuring data survives container restarts
-- **Solution**: Docker volumes for WordPress, MySQL, and OpenWebUI
+- **Solution**: Docker volumes for WordPress, MariaDB, and OpenWebUI
 - **Time**: 20 minutes
 
 ## Performance Metrics
@@ -201,7 +201,7 @@ All CRUD operations have been successfully validated:
 ### Current PoC Architecture
 - Single WordPress instance
 - Single OpenWebUI instance
-- Shared MySQL database
+- Shared MariaDB database
 
 ### Multi-Tenant Considerations
 - Kubernetes namespaces for tenant isolation
@@ -258,11 +258,11 @@ cd wp-openwebui-admin
 ### B. Access URLs
 - WordPress: http://localhost:8080
 - OpenWebUI: http://localhost:3000
-- MySQL: localhost:3306
+- MariaDB: localhost:3306
 
 ### C. Default Credentials
-- MySQL Root: `root_password`
-- MySQL User: `wordpress` / `wordpress_password`
+- MariaDB Root: `root_password`
+- MariaDB User: `wordpress` / `wordpress_password`
 - MCP API Key: `demo-api-key-poc`
 
 ---

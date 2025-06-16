@@ -6,6 +6,6 @@ version: 0.1.0
 appVersion: "latest"
 
 dependencies:
-  - name: mysql
-    version: 9.4.6
+  - name: mariadb
+    version: 11.4.2
     repository: https://charts.bitnami.com/bitnami

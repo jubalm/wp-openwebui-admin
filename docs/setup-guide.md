@@ -174,7 +174,7 @@ curl -X DELETE \
 
 ### WordPress Configuration
 - **URL**: http://localhost:8080
-- **Database**: MySQL 8.0
+- **Database**: MariaDB 10.6
 - **MCP Plugin**: Automatically loaded from `wordpress/plugins/`
 
 ### OpenWebUI Configuration
@@ -182,7 +182,7 @@ curl -X DELETE \
 - **Data Directory**: `openwebui_data` volume
 - **Configuration**: `openwebui/config/` directory
 
-### MySQL Database
+### MariaDB Database
 - **Host**: localhost:3306
 - **Database**: wordpress
 - **Username**: wordpress
@@ -213,11 +213,11 @@ curl -X DELETE \
 
 3. **Database Connection Issues**
    ```bash
-   # Check MySQL logs
+   # Check MariaDB logs
    docker-compose logs mysql
    
    # Test database connection
-   docker-compose exec mysql mysql -u wordpress -p wordpress
+   docker-compose exec mysql mariadb -u wordpress -p wordpress
    ```
 
 ### API Issues

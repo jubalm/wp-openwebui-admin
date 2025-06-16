@@ -27,7 +27,7 @@ resources:
 # WordPress specific configuration
 wordpress:
   database:
-    host: mysql
+    host: mariadb
     name: wordpress
     user: wordpress
     password: wordpress_password
@@ -37,8 +37,8 @@ wordpress:
     apiKey: demo-api-key-poc
     enabled: true
 
-# MySQL configuration
-mysql:
+# MariaDB configuration
+mariadb:
   auth:
     rootPassword: root_password
     database: wordpress

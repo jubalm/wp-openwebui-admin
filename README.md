@@ -46,7 +46,7 @@ The project is organized as follows:
 
 ### Demonstrated Capabilities
 
-- ✅ **WordPress Deployment**: Local WordPress instance with MySQL database
+- ✅ **WordPress Deployment**: Local WordPress instance with MariaDB database
 - ✅ **MCP Plugin Integration**: Custom plugin enabling REST API communication
 - ✅ **OpenWebUI Deployment**: Ready for AI-powered content workflows
 - ✅ **CRUD Operations**: Create, Read, Update, Delete operations via API
