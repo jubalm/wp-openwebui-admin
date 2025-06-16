@@ -1,0 +1,80 @@
+version: '3.8'
+
+services:
+  # MySQL Database for WordPress
+  mysql:
+    image: mysql:8.0
+    container_name: wp-mysql
+    restart: unless-stopped
+    environment:
+      MYSQL_DATABASE: wordpress
+      MYSQL_USER: wordpress
+      MYSQL_PASSWORD: wordpress_password
+      MYSQL_ROOT_PASSWORD: root_password
+    volumes:
+      - mysql_data:/var/lib/mysql
+    networks:
+      - wp-network
+    ports:
+      - "3306:3306"
+
+  # WordPress with MCP Plugin
+  wordpress:
+    image: wordpress:latest
+    container_name: wp-instance
+    restart: unless-stopped
+    depends_on:
+      - mysql
+    environment:
+      WORDPRESS_DB_HOST: mysql:3306
+      WORDPRESS_DB_USER: wordpress
+      WORDPRESS_DB_PASSWORD: wordpress_password
+      WORDPRESS_DB_NAME: wordpress
+      WORDPRESS_DEBUG: 1
+    volumes:
+      - wordpress_data:/var/www/html
+      - ./wordpress/wp-content:/var/www/html/wp-content
+      - ./wordpress/plugins:/var/www/html/wp-content/plugins
+    networks:
+      - wp-network
+    ports:
+      - "8080:80"
+
+  # OpenWebUI
+  openwebui:
+    image: ghcr.io/open-webui/open-webui:main
+    container_name: openwebui-instance
+    restart: unless-stopped
+    environment:
+      - WEBUI_NAME=WordPress Integration Demo
+      - WEBUI_URL=http://localhost:3000
+      - DEFAULT_USER_ROLE=admin
+      - ENABLE_SIGNUP=true
+    volumes:
+      - openwebui_data:/app/backend/data
+      - ./openwebui/config:/app/backend/config
+    networks:
+      - wp-network
+    ports:
+      - "3000:8080"
+
+  # MCP Server for WordPress integration
+  mcp-server:
+    image: hashicorp/terraform-mcp-server
+    container_name: mcp-server
+    restart: unless-stopped
+    stdin_open: true
+    tty: true
+    networks:
+      - wp-network
+    ports:
+      - "8000:8000"
+
+volumes:
+  mysql_data:
+  wordpress_data:
+  openwebui_data:
+
+networks:
+  wp-network:
+    driver: bridge

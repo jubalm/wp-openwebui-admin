@@ -1,0 +1,51 @@
+# Default values for wordpress-mcp
+replicaCount: 1
+
+image:
+  repository: wordpress
+  pullPolicy: IfNotPresent
+  tag: "latest"
+
+nameOverride: ""
+fullnameOverride: ""
+
+service:
+  type: LoadBalancer
+  port: 80
+
+ingress:
+  enabled: false
+
+resources:
+  limits:
+    cpu: 500m
+    memory: 512Mi
+  requests:
+    cpu: 250m
+    memory: 256Mi
+
+# WordPress specific configuration
+wordpress:
+  database:
+    host: mysql
+    name: wordpress
+    user: wordpress
+    password: wordpress_password
+  
+  # MCP Plugin configuration
+  mcp:
+    apiKey: demo-api-key-poc
+    enabled: true
+
+# MySQL configuration
+mysql:
+  auth:
+    rootPassword: root_password
+    database: wordpress
+    username: wordpress
+    password: wordpress_password
+  
+  primary:
+    persistence:
+      enabled: true
+      size: 8Gi

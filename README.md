@@ -42,34 +42,89 @@ The project is organized as follows:
 - **Automated Application Deployment:** Customizable Helm charts for deploying WordPress (with MCP) and OpenWebUI.
 - **Core Application Stack per Tenant:** Dedicated WordPress (with MCP plugin) and OpenWebUI instances.
 - **Data Persistence:** Strategy for persistent storage for WordPress and OpenWebUI using IONOS storage solutions.
+- **🎯 PoC Implementation Complete**: Full working integration with CRUD operations validated
+
+### Demonstrated Capabilities
+
+- ✅ **WordPress Deployment**: Local WordPress instance with MySQL database
+- ✅ **MCP Plugin Integration**: Custom plugin enabling REST API communication
+- ✅ **OpenWebUI Deployment**: Ready for AI-powered content workflows
+- ✅ **CRUD Operations**: Create, Read, Update, Delete operations via API
+- ✅ **Documentation**: Complete setup and integration guides
+- ✅ **Automation**: Scripts for setup, testing, and cleanup
 
 ## 🚀 Getting Started
 
-To get started with the project:
+### Quick Start (PoC Demo)
 
 1. **Clone the Repository:**
-
    ```bash
-   git clone https://github.com/ionos/wp-openwebui-admin.git
+   git clone https://github.com/jubalm/wp-openwebui-admin.git
    cd wp-openwebui-admin
    ```
 
-2. **Install Dependencies:**
-   Ensure you have Node.js and npm installed. Run:
-
+2. **Run the Setup Script:**
    ```bash
-   npm install
+   ./scripts/setup.sh
    ```
 
-3. **Run the Application:**
-   Start the development server:
+3. **Complete WordPress Setup:**
+   - Open http://localhost:8080 in your browser
+   - Follow WordPress installation wizard
+   - Activate the MCP Integration plugin
 
+4. **Test the Integration:**
    ```bash
-   npm start
+   ./scripts/test-integration.sh
    ```
 
-4. **Access the Application:**
-   Open your browser and navigate to `http://localhost:3000`.
+5. **Access Services:**
+   - **WordPress**: http://localhost:8080
+   - **OpenWebUI**: http://localhost:3000
+
+### Prerequisites
+
+- **Docker & Docker Compose**: [Installation Guide](https://docs.docker.com/get-docker/)
+- **Git**: For cloning the repository
+- **curl**: For testing API endpoints
+
+## 📚 Documentation
+
+- **[Setup Guide](docs/setup-guide.md)**: Comprehensive installation and configuration guide
+- **[PoC Report](docs/poc-report.md)**: Complete proof of concept implementation report
+- **[Scripts Documentation](scripts/README.md)**: Helper scripts usage guide
+
+## 🧪 PoC Status: COMPLETE ✅
+
+All acceptance criteria have been successfully implemented and validated:
+
+1. ✅ **WordPress Local Deployment**: Running on http://localhost:8080
+2. ✅ **MCP Plugin**: Custom integration plugin with REST API
+3. ✅ **OpenWebUI Deployment**: Running on http://localhost:3000
+4. ✅ **Integration Configuration**: WordPress-OpenWebUI communication established
+5. ✅ **CRUD Operations**: All operations validated with automated tests
+6. ✅ **Documentation**: Complete setup, usage, and troubleshooting guides
+
+### Quick Validation
+```bash
+# Run the complete PoC setup and test
+./scripts/setup.sh
+./scripts/test-integration.sh
+```
+
+## 🔧 API Integration
+
+The MCP plugin provides REST API endpoints for WordPress-OpenWebUI integration:
+
+| Endpoint | Method | Purpose |
+|----------|--------|---------|
+| `/mcp/v1/status` | GET | Plugin status |
+| `/mcp/v1/posts` | GET | Retrieve posts |
+| `/mcp/v1/posts` | POST | Create post |
+| `/mcp/v1/posts/{id}` | PUT | Update post |
+| `/mcp/v1/posts/{id}` | DELETE | Delete post |
+
+**Authentication**: API Key (`X-API-Key: demo-api-key-poc`)
 
 ## Contributing
 

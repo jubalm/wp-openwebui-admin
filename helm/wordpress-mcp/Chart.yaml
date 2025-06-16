@@ -1,0 +1,11 @@
+apiVersion: v2
+name: wordpress-mcp
+description: A Helm chart for WordPress with MCP Integration Plugin
+type: application
+version: 0.1.0
+appVersion: "latest"
+
+dependencies:
+  - name: mysql
+    version: 9.4.6
+    repository: https://charts.bitnami.com/bitnami
