@@ -36,10 +36,10 @@ The project is organized as follows:
 ## ✨ Key Features (PoC Scope)
 
 - **IONOS Secure Cloud Management:** Demonstrates IONOS Managed Kubernetes, networking (LoadBalancer for IP exposure), and storage solutions with a focus on security and scalability.
-- **Multi-Tenant Architecture:** Implements a strategy for securely hosting multiple tenants within the same infrastructure. Each tenant is isolated using Kubernetes namespaces, ensuring data security and resource efficiency. This architecture supports scalability and allows for efficient utilization of cloud resources.
-- **Automated Infrastructure Provisioning:** Ready for Terraform-based infrastructure automation on IONOS.
-- **Containerized Deployment:** Complete Docker-based solution with production-ready orchestration.
-- **Core Application Stack per Tenant:** Dedicated WordPress (with official MCP plugin) and OpenWebUI instances.
+- **Multi-Tenant Architecture:** Implements a comprehensive tenant isolation strategy for securely hosting multiple tenants within the same infrastructure. The strategy uses Kubernetes namespaces with strict security controls for the PoC, with a clear migration path to dedicated clusters for production scaling. Detailed analysis and implementation guidance is provided in the [Tenant Isolation Strategy](docs/kb/tenant-isolation-strategy.md) document.
+- **Automated Infrastructure Provisioning:** Using Terraform to create reusable modules for tenant infrastructure on IONOS.
+- **Automated Application Deployment:** Customizable Helm charts for deploying WordPress (with MCP) and OpenWebUI.
+- **Core Application Stack per Tenant:** Dedicated WordPress (with MCP plugin) and OpenWebUI instances.
 - **Data Persistence:** Strategy for persistent storage for WordPress and OpenWebUI using IONOS storage solutions.
 - **🎯 PoC Implementation Complete**: Full working integration with CRUD operations validated
 
@@ -61,30 +61,27 @@ The project is organized as follows:
 ### Quick Start (PoC Demo)
 
 1. **Clone the Repository:**
+
    ```bash
    git clone https://github.com/jubalm/wp-openwebui-admin.git
    cd wp-openwebui-admin
    ```
 
-2. **Run the Setup Script:**
+2. **Install Dependencies:**
+   Ensure you have Node.js and npm installed. Run:
+
    ```bash
-   ./scripts/setup.sh
+   npm install
    ```
 
-3. **Automated WordPress Setup:**
-   WordPress is now fully automated with custom Docker image:
-   ```bash
-   # No manual setup required - WordPress is ready after setup
-   # Pre-installed plugins: WordPress MCP, OpenID Connect Generic
-   # Admin user: admin/admin123 (configurable via environment)
-   ```
+3. **Run the Application:**
+   Start the development server:
 
-4. **Test the Integration:**
    ```bash
    ./scripts/test.sh  # Comprehensive testing of all components
    ```
 
-5. **Access Services:**
+4. **Access Services:**
    - **WordPress**: http://localhost:8080
    - **OpenWebUI**: http://localhost:3000
    - **Authentik (SSO)**: http://localhost:9000

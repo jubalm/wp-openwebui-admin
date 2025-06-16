@@ -34,8 +34,9 @@ A primary objective of the initial Proof of Concept (PoC) is to **showcase the c
 
 ### 4.2. Tenant Isolation
 
-- **Strategy:** Implement a robust tenant isolation strategy (e.g., using separate Kubernetes namespaces with strict NetworkPolicies and RBAC, or potentially separate Kubernetes clusters per tenant for stronger isolation). The chosen strategy will be documented.
+- **Strategy:** Implement a robust tenant isolation strategy following the comprehensive analysis and recommendations outlined in the [Tenant Isolation Strategy document](tenant-isolation-strategy.md). The chosen approach uses Kubernetes namespaces with strict NetworkPolicies and RBAC for the PoC, with a clear migration path to dedicated clusters for production scaling.
 - **Data Isolation:** Ensure data (WordPress database, file uploads, OpenWebUI configurations, logs) is strictly isolated between tenants.
+- **Implementation Details:** See the [Tenant Isolation Strategy](tenant-isolation-strategy.md) for detailed implementation guidance, security considerations, and operational procedures.
 
 ### 4.3. Automated Infrastructure Provisioning
 
@@ -87,15 +88,15 @@ A primary objective of the initial Proof of Concept (PoC) is to **showcase the c
 - **Showcase of IONOS Features:** Clear demonstration of how IONOS Managed Kubernetes, networking (LoadBalancer IP assignment), and storage solutions are utilized effectively.
 - **Automation Demonstration:** Successful automation of tenant infrastructure setup using Terraform on IONOS.
 - **Helm Deployment on IONOS:** Successful automation of application deployment using Helm charts into IONOS Managed Kubernetes.
-- **Tenant Isolation Documentation:** Clear documentation of the chosen tenant isolation strategy and its implementation for the PoC.
+- **Tenant Isolation Documentation:** Comprehensive documentation of the chosen tenant isolation strategy with detailed analysis, implementation guidance, and migration roadmap completed in the [Tenant Isolation Strategy](tenant-isolation-strategy.md) document.
 - **Clarity and Presentation:** Clear documentation and presentation materials suitable for showcasing the solution to IONOS stakeholders, noting PoC simplifications (HTTP access).
 - **Ease of Onboarding:** Demonstrated efficiency in the (simulated) onboarding process for a new tenant.
 - **IP-Based Access (HTTP):** Successful external access to tenant applications via a dedicated IP address over HTTP.
 
 ## 7. Open Questions / Areas for Further Investigation
 
-- **Scaling Multi-Tenant Architecture:** What are the best practices for scaling the platform to support hundreds of tenants?
-- **Security Enhancements:** How can tenant isolation be further improved to meet enterprise-grade security standards?
+- **Scaling Multi-Tenant Architecture:** Addressed in the [Tenant Isolation Strategy](tenant-isolation-strategy.md) with a tier-based approach and clear migration path from namespace isolation to dedicated clusters.
+- **Security Enhancements:** Detailed security considerations and hardening measures documented in the [Tenant Isolation Strategy](tenant-isolation-strategy.md) including NetworkPolicies, RBAC, and compliance readiness.
 - **Performance Optimization:** What tools and techniques can be used to monitor and optimize the performance of tenant instances?
 - **Integration with IONOS Cloud:** Are there additional IONOS services that can enhance the platform's capabilities?
 - **Cost Analysis:** What is the cost of hosting and scaling the platform on IONOS cloud, and how can it be optimized?
