@@ -54,9 +54,10 @@ The project is organized as follows:
 - ✅ **Docker Orchestration**: Complete containerized environment
 - ✅ **Kubernetes Ready**: Helm charts for production deployment
 - ✅ **MariaDB Compatibility**: Optimized for IONOS Cloud deployment
-- ✅ **OpenWebUI Deployment**: Ready for AI-powered content workflows
-- ✅ **CRUD Operations**: Create, Read, Update, Delete operations via API
-- ✅ **Documentation**: Complete setup and integration guides
+- ✅ **Single Sign-On (SSO)**: Authentik-based authentication for unified user management
+- ✅ **OpenID Connect Integration**: Secure OAuth2/OIDC authentication for WordPress and OpenWebUI
+- ✅ **Centralized User Management**: Single identity provider for all services
+- ✅ **Documentation**: Complete setup and integration guides including SSO configuration
 - ✅ **Automation**: Scripts for setup, testing, and cleanup
 
 ## 🚀 Getting Started
@@ -87,6 +88,13 @@ The project is organized as follows:
 5. **Access Services:**
    - **WordPress**: http://localhost:8080
    - **OpenWebUI**: http://localhost:3000
+   - **Authentik (SSO)**: http://localhost:9000
+
+6. **Configure SSO (Optional):**
+   ```bash
+   # Follow the detailed SSO setup guide
+   open docs/sso-setup-guide.md
+   ```
 
 ### Prerequisites
 
@@ -97,6 +105,7 @@ The project is organized as follows:
 ## 📚 Documentation
 
 - **[Setup Guide](docs/setup-guide.md)**: Comprehensive installation and configuration guide
+- **[SSO Setup Guide](docs/sso-setup-guide.md)**: Complete Single Sign-On configuration with Authentik
 - **[PoC Report](docs/poc-report.md)**: Complete proof of concept implementation report
 - **[Scripts Documentation](scripts/README.md)**: Helper scripts usage guide
 

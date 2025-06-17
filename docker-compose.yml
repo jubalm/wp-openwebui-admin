@@ -1,5 +1,5 @@
 services:
-  # MariaDB Database for WordPress
+  # MariaDB Database for WordPress and Authentik
   mysql:
     image: mariadb:10.6
     container_name: wp-mariadb
@@ -11,10 +11,22 @@ services:
       MARIADB_ROOT_PASSWORD: ${MARIADB_ROOT_PASSWORD:-root_password}
     volumes:
       - mariadb_data:/var/lib/mysql
+      - ./authentik/mariadb-init.sql:/docker-entrypoint-initdb.d/authentik-init.sql
     networks:
       - wp-network
     ports:
       - "${MYSQL_PORT:-3306}:3306"
+
+  # Redis for Authentik caching
+  redis:
+    image: redis:alpine
+    container_name: authentik-redis
+    restart: unless-stopped
+    command: --save 60 1 --loglevel warning
+    networks:
+      - wp-network
+    volumes:
+      - redis_data:/data
 
   # WordPress with MCP Plugin
   wordpress:
@@ -39,15 +51,82 @@ services:
     ports:
       - "${WORDPRESS_PORT:-8080}:80"
 
+  # Authentik Server
+  authentik-server:
+    image: ghcr.io/goauthentik/authentik:${AUTHENTIK_TAG:-2024.8.3}
+    container_name: authentik-server
+    restart: unless-stopped
+    command: server
+    depends_on:
+      - mysql
+      - redis
+    environment:
+      AUTHENTIK_REDIS__HOST: redis
+      AUTHENTIK_POSTGRESQL__HOST: mysql
+      AUTHENTIK_POSTGRESQL__USER: ${AUTHENTIK_DB_USER:-authentik}
+      AUTHENTIK_POSTGRESQL__NAME: ${AUTHENTIK_DB_NAME:-authentik}
+      AUTHENTIK_POSTGRESQL__PASSWORD: ${AUTHENTIK_DB_PASSWORD:-authentik_password}
+      AUTHENTIK_POSTGRESQL__PORT: 3306
+      AUTHENTIK_SECRET_KEY: ${AUTHENTIK_SECRET_KEY:-super-secret-key-change-me}
+      AUTHENTIK_ERROR_REPORTING__ENABLED: ${AUTHENTIK_ERROR_REPORTING:-false}
+      AUTHENTIK_BOOTSTRAP_PASSWORD: ${AUTHENTIK_BOOTSTRAP_PASSWORD:-admin}
+      AUTHENTIK_BOOTSTRAP_TOKEN: ${AUTHENTIK_BOOTSTRAP_TOKEN:-bootstrap-token}
+      AUTHENTIK_BOOTSTRAP_EMAIL: ${AUTHENTIK_BOOTSTRAP_EMAIL:-admin@example.com}
+    volumes:
+      - authentik_media:/media
+      - authentik_custom_templates:/templates
+    networks:
+      - wp-network
+    ports:
+      - "${AUTHENTIK_PORT:-9000}:9000"
+      - "${AUTHENTIK_HTTPS_PORT:-9443}:9443"
+
+  # Authentik Worker
+  authentik-worker:
+    image: ghcr.io/goauthentik/authentik:${AUTHENTIK_TAG:-2024.8.3}
+    container_name: authentik-worker
+    restart: unless-stopped
+    command: worker
+    depends_on:
+      - mysql
+      - redis
+    environment:
+      AUTHENTIK_REDIS__HOST: redis
+      AUTHENTIK_POSTGRESQL__HOST: mysql
+      AUTHENTIK_POSTGRESQL__USER: ${AUTHENTIK_DB_USER:-authentik}
+      AUTHENTIK_POSTGRESQL__NAME: ${AUTHENTIK_DB_NAME:-authentik}
+      AUTHENTIK_POSTGRESQL__PASSWORD: ${AUTHENTIK_DB_PASSWORD:-authentik_password}
+      AUTHENTIK_POSTGRESQL__PORT: 3306
+      AUTHENTIK_SECRET_KEY: ${AUTHENTIK_SECRET_KEY:-super-secret-key-change-me}
+      AUTHENTIK_ERROR_REPORTING__ENABLED: ${AUTHENTIK_ERROR_REPORTING:-false}
+    user: root
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - authentik_media:/media
+      - authentik_certs:/certs
+      - authentik_custom_templates:/templates
+    networks:
+      - wp-network
+
   openwebui:
     image: ghcr.io/open-webui/open-webui:main
     container_name: openwebui-instance
     restart: unless-stopped
+    depends_on:
+      - authentik-server
     environment:
       - WEBUI_NAME=${WEBUI_NAME:-WordPress Integration Demo}
       - WEBUI_URL=${WEBUI_URL:-http://localhost:3000}
       - DEFAULT_USER_ROLE=${DEFAULT_USER_ROLE:-admin}
-      - ENABLE_SIGNUP=${ENABLE_SIGNUP:-true}
+      - ENABLE_SIGNUP=${ENABLE_SIGNUP:-false}
+      - OAUTH_CLIENT_ID=${OPENWEBUI_OAUTH_CLIENT_ID:-openwebui}
+      - OAUTH_CLIENT_SECRET=${OPENWEBUI_OAUTH_CLIENT_SECRET:-openwebui-secret}
+      - OAUTH_SCOPES=${OPENWEBUI_OAUTH_SCOPES:-openid profile email}
+      - OAUTH_PROVIDER_NAME=${OPENWEBUI_OAUTH_PROVIDER_NAME:-Authentik}
+      - OAUTH_REDIRECT_URI=${OPENWEBUI_OAUTH_REDIRECT_URI:-http://localhost:3000/oauth/callback}
+      - OAUTH_AUTHORIZATION_URL=${OPENWEBUI_OAUTH_AUTHORIZATION_URL:-http://localhost:9000/application/o/authorize/}
+      - OAUTH_TOKEN_URL=${OPENWEBUI_OAUTH_TOKEN_URL:-http://authentik-server:9000/application/o/token/}
+      - OAUTH_USERINFO_URL=${OPENWEBUI_OAUTH_USERINFO_URL:-http://authentik-server:9000/application/o/userinfo/}
     volumes:
       - openwebui_data:/app/backend/data
       - ./openwebui/config:/app/backend/config
@@ -60,6 +139,10 @@ volumes:
   mariadb_data:
   wordpress_data:
   openwebui_data:
+  redis_data:
+  authentik_media:
+  authentik_certs:
+  authentik_custom_templates:
 
 networks:
   wp-network:
