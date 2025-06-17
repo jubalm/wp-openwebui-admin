@@ -210,12 +210,17 @@ nano .env
 | Variable | Default | Description |
 |----------|---------|-------------|
 | `MARIADB_DATABASE` | `wordpress` | WordPress database name |
-| `MARIADB_USER` | `wordpress` | Database user |
-| `MARIADB_PASSWORD` | `wordpress_password` | Database password |
-| `MARIADB_ROOT_PASSWORD` | `root_password` | Database root password |
+| `MARIADB_USER` | `wordpress` | MariaDB user for WordPress |
+| `MARIADB_PASSWORD` | `wordpress_password` | MariaDB password for WordPress |
+| `MARIADB_ROOT_PASSWORD` | `root_password` | MariaDB root password |
+| `AUTHENTIK_DB_USER` | `authentik` | PostgreSQL user for Authentik |
+| `AUTHENTIK_DB_NAME` | `authentik` | PostgreSQL database for Authentik |
+| `AUTHENTIK_DB_PASSWORD` | `authentik_password` | PostgreSQL password for Authentik |
 | `WORDPRESS_PORT` | `8080` | WordPress HTTP port |
 | `OPENWEBUI_PORT` | `3000` | OpenWebUI HTTP port |
-| `MYSQL_PORT` | `3306` | Database port |
+| `MYSQL_PORT` | `3306` | MariaDB port |
+| `POSTGRES_PORT` | `5432` | PostgreSQL port |
+| `AUTHENTIK_PORT` | `9000` | Authentik HTTP port |
 | `WORDPRESS_CONFIG_EXTRA` | `define('WP_ENVIRONMENT_TYPE', 'local');` | Extra WordPress configuration |
 
 ### Key Configuration Notes
@@ -228,7 +233,7 @@ nano .env
 
 ### WordPress Configuration
 - **URL**: http://localhost:8080
-- **Database**: MariaDB 10.6
+- **Database**: MariaDB 10.6 (dedicated)
 - **MCP Plugin**: Official WordPress MCP plugin
 - **Plugin Path**: `wordpress/plugins/wordpress-mcp/`
 
@@ -236,13 +241,25 @@ nano .env
 - **URL**: http://localhost:3000
 - **Data Directory**: `openwebui_data` volume
 - **Configuration**: `openwebui/config/` directory
+- **Authentication**: Authentik SSO integration
 
-### MariaDB Database
+### Authentik Configuration
+- **URL**: http://localhost:9000
+- **Database**: PostgreSQL 15 (dedicated)
+- **Default credentials**: admin/admin (change on first login)
+
+### MariaDB Database (WordPress)
 - **Host**: localhost:3306
 - **Database**: wordpress
 - **Username**: wordpress
 - **Password**: wordpress_password
 - **Root Password**: root_password
+
+### PostgreSQL Database (Authentik)
+- **Host**: localhost:5432
+- **Database**: authentik
+- **Username**: authentik
+- **Password**: authentik_password
 
 ## Troubleshooting
 
@@ -268,11 +285,17 @@ nano .env
 
 3. **Database Connection Issues**
    ```bash
-   # Check MariaDB logs
+   # Check MariaDB logs (WordPress)
    docker-compose logs mysql
    
-   # Test database connection
+   # Check PostgreSQL logs (Authentik)
+   docker-compose logs postgres
+   
+   # Test MariaDB connection
    docker-compose exec mysql mariadb -u wordpress -p wordpress
+   
+   # Test PostgreSQL connection
+   docker-compose exec postgres psql -U authentik -d authentik
    ```
 
 ### MCP Integration Issues

@@ -1,5 +1,5 @@
 services:
-  # MariaDB Database for WordPress and Authentik
+  # MariaDB Database for WordPress
   mysql:
     image: mariadb:10.6
     container_name: wp-mariadb
@@ -11,11 +11,26 @@ services:
       MARIADB_ROOT_PASSWORD: ${MARIADB_ROOT_PASSWORD:-root_password}
     volumes:
       - mariadb_data:/var/lib/mysql
-      - ./authentik/mariadb-init.sql:/docker-entrypoint-initdb.d/authentik-init.sql
     networks:
       - wp-network
     ports:
       - "${MYSQL_PORT:-3306}:3306"
+
+  # PostgreSQL Database for Authentik
+  postgres:
+    image: postgres:15-alpine
+    container_name: authentik-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${AUTHENTIK_DB_NAME:-authentik}
+      POSTGRES_USER: ${AUTHENTIK_DB_USER:-authentik}
+      POSTGRES_PASSWORD: ${AUTHENTIK_DB_PASSWORD:-authentik_password}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - wp-network
+    ports:
+      - "${POSTGRES_PORT:-5432}:5432"
 
   # Redis for Authentik caching
   redis:
@@ -58,15 +73,15 @@ services:
     restart: unless-stopped
     command: server
     depends_on:
-      - mysql
+      - postgres
       - redis
     environment:
       AUTHENTIK_REDIS__HOST: redis
-      AUTHENTIK_POSTGRESQL__HOST: mysql
+      AUTHENTIK_POSTGRESQL__HOST: postgres
       AUTHENTIK_POSTGRESQL__USER: ${AUTHENTIK_DB_USER:-authentik}
       AUTHENTIK_POSTGRESQL__NAME: ${AUTHENTIK_DB_NAME:-authentik}
       AUTHENTIK_POSTGRESQL__PASSWORD: ${AUTHENTIK_DB_PASSWORD:-authentik_password}
-      AUTHENTIK_POSTGRESQL__PORT: 3306
+      AUTHENTIK_POSTGRESQL__PORT: 5432
       AUTHENTIK_SECRET_KEY: ${AUTHENTIK_SECRET_KEY:-super-secret-key-change-me}
       AUTHENTIK_ERROR_REPORTING__ENABLED: ${AUTHENTIK_ERROR_REPORTING:-false}
       AUTHENTIK_BOOTSTRAP_PASSWORD: ${AUTHENTIK_BOOTSTRAP_PASSWORD:-admin}
@@ -88,15 +103,15 @@ services:
     restart: unless-stopped
     command: worker
     depends_on:
-      - mysql
+      - postgres
       - redis
     environment:
       AUTHENTIK_REDIS__HOST: redis
-      AUTHENTIK_POSTGRESQL__HOST: mysql
+      AUTHENTIK_POSTGRESQL__HOST: postgres
       AUTHENTIK_POSTGRESQL__USER: ${AUTHENTIK_DB_USER:-authentik}
       AUTHENTIK_POSTGRESQL__NAME: ${AUTHENTIK_DB_NAME:-authentik}
       AUTHENTIK_POSTGRESQL__PASSWORD: ${AUTHENTIK_DB_PASSWORD:-authentik_password}
-      AUTHENTIK_POSTGRESQL__PORT: 3306
+      AUTHENTIK_POSTGRESQL__PORT: 5432
       AUTHENTIK_SECRET_KEY: ${AUTHENTIK_SECRET_KEY:-super-secret-key-change-me}
       AUTHENTIK_ERROR_REPORTING__ENABLED: ${AUTHENTIK_ERROR_REPORTING:-false}
     user: root
@@ -137,6 +152,7 @@ services:
 
 volumes:
   mariadb_data:
+  postgres_data:
   wordpress_data:
   openwebui_data:
   redis_data:
