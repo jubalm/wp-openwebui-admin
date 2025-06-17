@@ -1,6 +1,6 @@
 # WordPress and OpenWebUI Integration PoC Setup Guide
 
-This guide provides step-by-step instructions for setting up and validating the integration between WordPress (with MCP plugin) and OpenWebUI.
+This guide provides step-by-step instructions for setting up and validating the integration between WordPress (with the official WordPress MCP plugin) and OpenWebUI.
 
 ## Prerequisites
 
@@ -29,11 +29,16 @@ Before starting, ensure you have the following installed:
    - Follow the WordPress installation wizard
    - Create an admin user
 
-4. **Activate MCP Plugin**
+4. **Activate WordPress MCP Plugin**
    - Go to WordPress Admin → Plugins
-   - Activate "MCP Integration Plugin"
+   - Activate "WordPress MCP" plugin
 
-5. **Test the Integration**
+5. **Configure MCP Settings**
+   - Go to Settings → MCP Settings
+   - Enable MCP functionality
+   - Generate JWT authentication tokens
+
+6. **Test the Integration**
    ```bash
    ./scripts/test-integration.sh
    ```
@@ -57,15 +62,34 @@ Before starting, ensure you have the following installed:
    - Set site title and description
    - Configure permalinks (Settings → Permalinks → Post name)
 
-### 2. MCP Plugin Configuration
+### 2. WordPress MCP Plugin Configuration
 
 1. **Activate Plugin**
    - Go to WordPress Admin → Plugins
-   - Activate "MCP Integration Plugin"
+   - Activate "WordPress MCP" plugin
 
-2. **Verify Plugin Status**
+2. **Configure MCP Settings**
+   - Go to Settings → MCP Settings
+   - Enable MCP functionality
+   - Configure authentication settings
+
+3. **Generate JWT Token**
+   - In MCP Settings, go to Authentication Tokens
+   - Generate a new JWT token
+   - Copy the token for use in API calls
+
+4. **Alternative: Application Password**
+   - Go to Users → Profile → Application Passwords
+   - Generate a new application password
+   - Use with basic authentication
+
+5. **Verify Plugin Status**
    ```bash
-   curl -H "X-API-Key: demo-api-key-poc" http://localhost:8080/wp-json/mcp/v1/status
+   # Check MCP STDIO endpoint
+   curl http://localhost:8080/wp-json/wp/v2/wpmcp
+   
+   # Check MCP Streamable endpoint  
+   curl http://localhost:8080/wp-json/wp/v2/wpmcp/streamable
    ```
 
 ### 3. OpenWebUI Setup
@@ -74,100 +98,88 @@ Before starting, ensure you have the following installed:
    - URL: http://localhost:3000
    - Create admin account
 
-2. **Configure Integration**
-   - The integration is configured to communicate with WordPress via REST API
-   - API Key: `demo-api-key-poc`
-   - WordPress API Base: `http://localhost:8080/wp-json/mcp/v1`
+2. **Configure MCP Integration**
+   - Install Node.js (version 22 or higher) if using mcp-wordpress-remote
+   - Configure MCP client to connect to WordPress MCP endpoints
+   - Use JWT tokens or application passwords for authentication
 
-## API Endpoints
+## MCP Integration Architecture
 
-The MCP plugin provides the following REST API endpoints:
+The WordPress MCP plugin provides two transport protocols:
 
-### Authentication
-- **Header**: `X-API-Key: demo-api-key-poc`
-- **Alternative**: WordPress user authentication
+### STDIO Transport
+- **Endpoint**: `/wp/v2/wpmcp`
+- **Format**: WordPress-style responses
+- **Authentication**: JWT tokens or Application Passwords
+- **Use with**: mcp-wordpress-remote proxy
 
-### Available Endpoints
+### Streamable Transport
+- **Endpoint**: `/wp/v2/wpmcp/streamable`
+- **Format**: JSON-RPC 2.0
+- **Authentication**: JWT tokens only
+- **Use with**: Direct AI client connections
 
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| GET | `/mcp/v1/status` | Get plugin status |
-| GET | `/mcp/v1/posts` | Get posts |
-| POST | `/mcp/v1/posts` | Create post |
-| PUT | `/mcp/v1/posts/{id}` | Update post |
-| DELETE | `/mcp/v1/posts/{id}` | Delete post |
+## Available MCP Tools
 
-### Example API Calls
+The WordPress MCP plugin provides standardized tools for:
 
-1. **Get Plugin Status**
-   ```bash
-   curl -H "X-API-Key: demo-api-key-poc" \
-        http://localhost:8080/wp-json/mcp/v1/status
-   ```
+### Posts Management
+- `wp_posts_search` - Search and filter posts
+- `wp_get_post` - Get post by ID
+- `wp_add_post` - Create new posts
+- `wp_update_post` - Update existing posts
+- `wp_delete_post` - Delete posts
 
-2. **Create Post**
-   ```bash
-   curl -X POST \
-        -H "Content-Type: application/json" \
-        -H "X-API-Key: demo-api-key-poc" \
-        -d '{"title":"Test Post","content":"Test content","status":"publish"}' \
-        http://localhost:8080/wp-json/mcp/v1/posts
-   ```
+### Users Management
+- `wp_users_search` - Search users
+- `wp_get_user` - Get user by ID
+- `wp_add_user` - Create users
+- `wp_update_user` - Update users
+- `wp_delete_user` - Delete users
 
-3. **Get Posts**
-   ```bash
-   curl -H "X-API-Key: demo-api-key-poc" \
-        http://localhost:8080/wp-json/mcp/v1/posts
-   ```
+### Site Settings
+- `wp_get_site_info` - Get site information
+- `wp_update_site_settings` - Update site settings
 
-## CRUD Operations Demonstration
+## Authentication Methods
 
-### Create Operation
+### JWT Tokens (Recommended)
 ```bash
-# Create a new post
+# Generate token in WordPress: Settings > MCP > Authentication Tokens
+curl -H "Authorization: Bearer YOUR_JWT_TOKEN" \
+     http://localhost:8080/wp-json/wp/v2/posts
+```
+
+### Application Passwords
+```bash
+# Create in Users > Profile > Application Passwords
+curl -u "username:app_password" \
+     http://localhost:8080/wp-json/wp/v2/posts
+```
+## Example API Usage
+
+### Direct WordPress REST API
+```bash
+# Create a post using WordPress REST API
 curl -X POST \
      -H "Content-Type: application/json" \
-     -H "X-API-Key: demo-api-key-poc" \
+     -H "Authorization: Bearer YOUR_JWT_TOKEN" \
      -d '{
-       "title": "Sample Post",
-       "content": "This is sample content",
-       "excerpt": "Sample excerpt",
+       "title": "AI Generated Post",
+       "content": "This post was created via the WordPress MCP integration",
        "status": "publish"
      }' \
-     http://localhost:8080/wp-json/mcp/v1/posts
+     http://localhost:8080/wp-json/wp/v2/posts
 ```
 
-### Read Operation
+### Using mcp-wordpress-remote
 ```bash
-# Get all posts
-curl -H "X-API-Key: demo-api-key-poc" \
-     http://localhost:8080/wp-json/mcp/v1/posts
+# Install the MCP WordPress Remote package
+npx @automattic/mcp-wordpress-remote@latest
 
-# Get posts with pagination
-curl -H "X-API-Key: demo-api-key-poc" \
-     "http://localhost:8080/wp-json/mcp/v1/posts?per_page=5&offset=0"
-```
-
-### Update Operation
-```bash
-# Update post with ID 1
-curl -X PUT \
-     -H "Content-Type: application/json" \
-     -H "X-API-Key: demo-api-key-poc" \
-     -d '{
-       "title": "Updated Post Title",
-       "content": "Updated content",
-       "status": "publish"
-     }' \
-     http://localhost:8080/wp-json/mcp/v1/posts/1
-```
-
-### Delete Operation
-```bash
-# Delete post with ID 1
-curl -X DELETE \
-     -H "X-API-Key: demo-api-key-poc" \
-     http://localhost:8080/wp-json/mcp/v1/posts/1
+# Set environment variables
+export WP_API_URL="http://localhost:8080/"
+export JWT_TOKEN="your-jwt-token-here"
 ```
 
 ## Service Configuration
@@ -175,7 +187,8 @@ curl -X DELETE \
 ### WordPress Configuration
 - **URL**: http://localhost:8080
 - **Database**: MariaDB 10.6
-- **MCP Plugin**: Automatically loaded from `wordpress/plugins/`
+- **MCP Plugin**: Official WordPress MCP plugin
+- **Plugin Path**: `wordpress/plugins/wordpress-mcp/`
 
 ### OpenWebUI Configuration
 - **URL**: http://localhost:3000
@@ -202,13 +215,13 @@ curl -X DELETE \
    docker-compose logs wordpress
    ```
 
-2. **Plugin Not Working**
+2. **MCP Plugin Not Working**
    ```bash
-   # Verify plugin file exists
-   ls -la wordpress/plugins/mcp-integration.php
+   # Verify plugin directory exists
+   ls -la wordpress/plugins/wordpress-mcp/
    
-   # Check WordPress error logs
-   docker-compose logs wordpress | grep -i error
+   # Check if composer dependencies are installed
+   ls -la wordpress/plugins/wordpress-mcp/vendor/
    ```
 
 3. **Database Connection Issues**
@@ -220,21 +233,21 @@ curl -X DELETE \
    docker-compose exec mysql mariadb -u wordpress -p wordpress
    ```
 
-### API Issues
+### MCP Integration Issues
 
-1. **API Not Responding**
+1. **MCP Endpoints Not Responding**
    ```bash
-   # Test WordPress REST API
-   curl http://localhost:8080/wp-json/wp/v2/posts
+   # Test MCP STDIO endpoint
+   curl http://localhost:8080/wp-json/wp/v2/wpmcp
    
-   # Test MCP plugin endpoint
-   curl http://localhost:8080/wp-json/mcp/v1/status
+   # Test MCP Streamable endpoint
+   curl http://localhost:8080/wp-json/wp/v2/wpmcp/streamable
    ```
 
 2. **Authentication Errors**
-   - Verify API key: `demo-api-key-poc`
-   - Check WordPress user permissions
-   - Ensure plugin is activated
+   - Generate JWT tokens in WordPress: Settings → MCP Settings
+   - Or create Application Passwords in Users → Profile
+   - Ensure MCP functionality is enabled in plugin settings
 
 ### OpenWebUI Issues
 
@@ -252,21 +265,30 @@ curl -X DELETE \
 ⚠️ **Important**: This is a Proof of Concept setup for local development only.
 
 ### Production Considerations:
-- Use strong, unique API keys
-- Implement proper OAuth authentication
+- Use strong JWT tokens with appropriate expiration times
+- Implement proper user authentication and authorization
 - Use HTTPS for all communications
 - Set up proper database credentials
-- Implement rate limiting
+- Implement rate limiting for MCP endpoints
 - Add input validation and sanitization
 - Use environment variables for sensitive data
+- Enable WordPress security features
 
 ## Next Steps
 
-1. **Integration Testing**: Run comprehensive tests using the test script
-2. **OpenWebUI Configuration**: Configure OpenWebUI to use WordPress API
-3. **Custom Workflows**: Implement custom AI-powered content creation workflows
-4. **Monitoring**: Add logging and monitoring for production use
-5. **Scaling**: Consider Kubernetes deployment for multi-tenant scenarios
+1. **Complete WordPress Setup**: Finish WordPress installation and activate the MCP plugin
+2. **Configure MCP Settings**: Enable MCP functionality and generate authentication tokens
+3. **Test Integration**: Run the test script to verify MCP functionality
+4. **OpenWebUI Integration**: Configure OpenWebUI to connect to WordPress MCP endpoints
+5. **Custom Workflows**: Implement AI-powered content creation workflows
+6. **Production Deployment**: Plan for Kubernetes deployment with proper security
+
+## Additional Resources
+
+- [WordPress MCP Plugin Documentation](https://github.com/Automattic/wordpress-mcp)
+- [MCP WordPress Remote Client](https://github.com/Automattic/mcp-wordpress-remote)
+- [Model Context Protocol Specification](https://modelcontextprotocol.io/)
+- [WordPress REST API Documentation](https://developer.wordpress.org/rest-api/)
 
 ## Support
 
@@ -274,7 +296,7 @@ For issues and questions:
 1. Check the troubleshooting section above
 2. Review Docker logs for error messages
 3. Test individual components separately
-4. Refer to the project documentation in `docs/`
+4. Refer to the official WordPress MCP plugin documentation
 
 ## License
 

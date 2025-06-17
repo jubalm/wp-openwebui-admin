@@ -1,11 +1,11 @@
 # Scripts Directory
 
-This directory contains helper scripts for the WordPress and OpenWebUI Integration PoC.
+This directory contains helper scripts for the WordPress and OpenWebUI Integration PoC using the official WordPress MCP plugin.
 
 ## Available Scripts
 
 ### `setup.sh`
-**Purpose**: Automated setup of the entire PoC environment
+**Purpose**: Automated setup of the entire PoC environment with official WordPress MCP plugin
 
 **Usage**:
 ```bash
@@ -14,13 +14,14 @@ This directory contains helper scripts for the WordPress and OpenWebUI Integrati
 
 **What it does**:
 - Checks for Docker and Docker Compose
+- Validates WordPress MCP plugin installation
 - Creates necessary directories
 - Starts Docker containers
 - Waits for services to be ready
-- Provides next steps and service URLs
+- Provides setup instructions for WordPress MCP configuration
 
 ### `test-integration.sh`
-**Purpose**: Tests the MCP integration with WordPress CRUD operations
+**Purpose**: Tests the WordPress MCP integration using WordPress REST API and MCP endpoints
 
 **Usage**:
 ```bash
@@ -28,14 +29,16 @@ This directory contains helper scripts for the WordPress and OpenWebUI Integrati
 ```
 
 **What it does**:
-- Tests plugin status endpoint
-- Creates a test post
-- Reads posts from WordPress
-- Updates the test post
-- Deletes the test post
-- Reports test results
+- Tests WordPress REST API connectivity
+- Tests WordPress post CRUD operations
+- Validates MCP endpoint accessibility
+- Creates, reads, updates, and deletes test posts
+- Reports comprehensive test results
 
-**Prerequisites**: WordPress must be set up and MCP plugin activated
+**Prerequisites**: 
+- WordPress must be set up and WordPress MCP plugin activated
+- Authentication configured (JWT tokens or Application Passwords)
+- Update script variables with authentication credentials
 
 ### `cleanup.sh`
 **Purpose**: Cleans up the PoC environment

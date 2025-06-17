@@ -31,10 +31,10 @@ mkdir -p scripts/test
 chmod -R 755 wordpress/
 chmod -R 755 openwebui/
 
-# Copy MCP plugin to the correct location
-echo "🔌 Setting up MCP plugin..."
-if [ ! -f "wordpress/plugins/mcp-integration.php" ]; then
-    echo "❌ MCP plugin file not found. Please ensure mcp-integration.php is in wordpress/plugins/"
+# Check WordPress MCP plugin
+echo "🔌 Checking WordPress MCP plugin..."
+if [ ! -f "wordpress/plugins/wordpress-mcp/wordpress-mcp.php" ]; then
+    echo "❌ WordPress MCP plugin not found. Please ensure the official wordpress-mcp plugin is in wordpress/plugins/wordpress-mcp/"
     exit 1
 fi
 
@@ -94,18 +94,19 @@ echo "🎉 Setup completed successfully!"
 echo ""
 echo "📋 Next Steps:"
 echo "1. Complete WordPress setup at: http://localhost:8080"
-echo "2. Activate the MCP Integration plugin in WordPress admin"
-echo "3. Access OpenWebUI at: http://localhost:3000"
-echo "4. Run the test script: ./scripts/test-integration.sh"
+echo "2. Activate the WordPress MCP plugin in WordPress admin"
+echo "3. Configure MCP settings in Settings > MCP Settings"
+echo "4. Generate a JWT token for API authentication"
+echo "5. Access OpenWebUI at: http://localhost:3000"
+echo "6. Run the test script: ./scripts/test-integration.sh"
 echo ""
 echo "📚 Service URLs:"
 echo "   WordPress: http://localhost:8080"
 echo "   OpenWebUI: http://localhost:3000"
 echo "   MariaDB: localhost:3306"
 echo ""
-echo "🔑 Default Credentials:"
-echo "   MariaDB Root: root_password"
-echo "   MariaDB User: wordpress / wordpress_password"
-echo "   MCP API Key: demo-api-key-poc"
+echo "🔑 Authentication:"
+echo "   Generate JWT tokens in WordPress admin: Settings > MCP Settings"
+echo "   Or use WordPress Application Passwords for basic auth"
 echo ""
 echo "📖 For more information, see: docs/setup-guide.md"
