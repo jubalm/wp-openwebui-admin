@@ -1,5 +1,3 @@
-version: '3.8'
-
 services:
   # MariaDB Database for WordPress
   mysql:
@@ -7,16 +5,16 @@ services:
     container_name: wp-mariadb
     restart: unless-stopped
     environment:
-      MARIADB_DATABASE: wordpress
-      MARIADB_USER: wordpress
-      MARIADB_PASSWORD: wordpress_password
-      MARIADB_ROOT_PASSWORD: root_password
+      MARIADB_DATABASE: ${MARIADB_DATABASE:-wordpress}
+      MARIADB_USER: ${MARIADB_USER:-wordpress}
+      MARIADB_PASSWORD: ${MARIADB_PASSWORD:-wordpress_password}
+      MARIADB_ROOT_PASSWORD: ${MARIADB_ROOT_PASSWORD:-root_password}
     volumes:
       - mariadb_data:/var/lib/mysql
     networks:
       - wp-network
     ports:
-      - "3306:3306"
+      - "${MYSQL_PORT:-3306}:3306"
 
   # WordPress with MCP Plugin
   wordpress:
@@ -26,11 +24,12 @@ services:
     depends_on:
       - mysql
     environment:
-      WORDPRESS_DB_HOST: mysql:3306
-      WORDPRESS_DB_USER: wordpress
-      WORDPRESS_DB_PASSWORD: wordpress_password
-      WORDPRESS_DB_NAME: wordpress
-      WORDPRESS_DEBUG: 1
+      WORDPRESS_DB_HOST: ${WORDPRESS_DB_HOST:-mysql:3306}
+      WORDPRESS_DB_USER: ${WORDPRESS_DB_USER:-wordpress}
+      WORDPRESS_DB_PASSWORD: ${WORDPRESS_DB_PASSWORD:-wordpress_password}
+      WORDPRESS_DB_NAME: ${WORDPRESS_DB_NAME:-wordpress}
+      WORDPRESS_DEBUG: ${WORDPRESS_DEBUG:-1}
+      WORDPRESS_CONFIG_EXTRA: ${WORDPRESS_CONFIG_EXTRA:-define('WP_ENVIRONMENT_TYPE', 'local');}
     volumes:
       - wordpress_data:/var/www/html
       - ./wordpress/wp-content:/var/www/html/wp-content
@@ -38,27 +37,24 @@ services:
     networks:
       - wp-network
     ports:
-      - "8080:80"
+      - "${WORDPRESS_PORT:-8080}:80"
 
-  # OpenWebUI
   openwebui:
     image: ghcr.io/open-webui/open-webui:main
     container_name: openwebui-instance
     restart: unless-stopped
     environment:
-      - WEBUI_NAME=WordPress Integration Demo
-      - WEBUI_URL=http://localhost:3000
-      - DEFAULT_USER_ROLE=admin
-      - ENABLE_SIGNUP=true
+      - WEBUI_NAME=${WEBUI_NAME:-WordPress Integration Demo}
+      - WEBUI_URL=${WEBUI_URL:-http://localhost:3000}
+      - DEFAULT_USER_ROLE=${DEFAULT_USER_ROLE:-admin}
+      - ENABLE_SIGNUP=${ENABLE_SIGNUP:-true}
     volumes:
       - openwebui_data:/app/backend/data
       - ./openwebui/config:/app/backend/config
     networks:
       - wp-network
     ports:
-      - "3000:8080"
-
-
+      - "${OPENWEBUI_PORT:-3000}:8080"
 
 volumes:
   mariadb_data:

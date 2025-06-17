@@ -7,16 +7,23 @@ set -e
 
 echo "🧹 Cleaning up WordPress and OpenWebUI Integration PoC..."
 
+# Set Docker Compose command
+if command -v docker-compose &> /dev/null; then
+    DOCKER_COMPOSE="docker-compose"
+else
+    DOCKER_COMPOSE="docker compose"
+fi
+
 # Stop and remove containers
 echo "🛑 Stopping containers..."
-docker-compose down --remove-orphans
+$DOCKER_COMPOSE down --remove-orphans
 
 # Remove volumes (optional - uncomment if you want to remove all data)
 echo "❓ Remove all data volumes? (y/N)"
 read -r response
 if [[ "$response" =~ ^([yY][eE][sS]|[yY])$ ]]; then
     echo "🗑️ Removing volumes..."
-    docker-compose down --volumes
+    $DOCKER_COMPOSE down --volumes
     docker volume prune -f
     echo "✅ All volumes removed"
 else

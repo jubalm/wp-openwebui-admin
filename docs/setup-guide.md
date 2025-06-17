@@ -19,15 +19,24 @@ Before starting, ensure you have the following installed:
    cd wp-openwebui-admin
    ```
 
-2. **Run the Setup Script**
+2. **Configure Environment (Optional)**
+   ```bash
+   # Copy the example environment file and customize if needed
+   cp .env.example .env
+   # Edit .env file to customize ports, passwords, etc.
+   # If no .env file is present, default values will be used
+   ```
+
+3. **Run the Setup Script**
    ```bash
    ./scripts/setup.sh
    ```
 
-3. **Complete WordPress Installation**
+4. **Complete WordPress Installation**
    - Open http://localhost:8080 in your browser
    - Follow the WordPress installation wizard
    - Create an admin user
+   - **Note**: Application passwords are enabled for local development
 
 4. **Activate WordPress MCP Plugin**
    - Go to WordPress Admin → Plugins
@@ -181,6 +190,39 @@ npx @automattic/mcp-wordpress-remote@latest
 export WP_API_URL="http://localhost:8080/"
 export JWT_TOKEN="your-jwt-token-here"
 ```
+
+## Environment Configuration
+
+The setup uses environment variables that can be customized through a `.env` file:
+
+### Creating Environment File
+
+```bash
+# Copy the example file
+cp .env.example .env
+
+# Edit with your preferred values
+nano .env
+```
+
+### Available Variables
+
+| Variable | Default | Description |
+|----------|---------|-------------|
+| `MARIADB_DATABASE` | `wordpress` | WordPress database name |
+| `MARIADB_USER` | `wordpress` | Database user |
+| `MARIADB_PASSWORD` | `wordpress_password` | Database password |
+| `MARIADB_ROOT_PASSWORD` | `root_password` | Database root password |
+| `WORDPRESS_PORT` | `8080` | WordPress HTTP port |
+| `OPENWEBUI_PORT` | `3000` | OpenWebUI HTTP port |
+| `MYSQL_PORT` | `3306` | Database port |
+| `WORDPRESS_CONFIG_EXTRA` | `define('WP_ENVIRONMENT_TYPE', 'local');` | Extra WordPress configuration |
+
+### Key Configuration Notes
+
+- **`WORDPRESS_CONFIG_EXTRA`**: Set to `define('WP_ENVIRONMENT_TYPE', 'local');` to enable application passwords without SSL
+- **Ports**: Ensure the specified ports are available on your system
+- **Passwords**: Change default passwords for production use
 
 ## Service Configuration
 

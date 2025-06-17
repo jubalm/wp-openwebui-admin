@@ -7,6 +7,14 @@ set -e
 
 echo "🚀 Starting WordPress and OpenWebUI Integration PoC Setup..."
 
+# Check for environment file
+echo "🔧 Checking environment configuration..."
+if [ ! -f ".env" ]; then
+    echo "ℹ️  No .env file found. You can copy .env.example to .env and customize if needed:"
+    echo "   cp .env.example .env"
+    echo "   Using default environment values from docker-compose.yml"
+fi
+
 # Check if Docker is installed
 if ! command -v docker &> /dev/null; then
     echo "❌ Docker is not installed. Please install Docker first."
@@ -15,10 +23,17 @@ if ! command -v docker &> /dev/null; then
 fi
 
 # Check if Docker Compose is installed
-if ! command -v docker-compose &> /dev/null; then
+if ! command -v docker-compose &> /dev/null && ! docker compose version &> /dev/null; then
     echo "❌ Docker Compose is not installed. Please install Docker Compose first."
     echo "Visit: https://docs.docker.com/compose/install/"
     exit 1
+fi
+
+# Set Docker Compose command
+if command -v docker-compose &> /dev/null; then
+    DOCKER_COMPOSE="docker-compose"
+else
+    DOCKER_COMPOSE="docker compose"
 fi
 
 # Create necessary directories
@@ -40,8 +55,8 @@ fi
 
 # Start Docker containers
 echo "🐳 Starting Docker containers..."
-docker-compose down --remove-orphans 2>/dev/null || true
-docker-compose up -d
+$DOCKER_COMPOSE down --remove-orphans 2>/dev/null || true
+$DOCKER_COMPOSE up -d
 
 # Wait for services to be ready
 echo "⏳ Waiting for services to start..."

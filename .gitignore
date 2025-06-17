@@ -36,6 +36,9 @@ dist/
 build/
 node_modules/
 
+# Allow WordPress MCP plugin build folder
+!wordpress/plugins/wordpress-mcp/build/
+
 # Environment files
 .env
 .env.local
