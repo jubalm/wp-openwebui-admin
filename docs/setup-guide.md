@@ -31,23 +31,21 @@ Before starting, ensure you have the following installed:
    ```bash
    ./scripts/setup.sh
    ```
+   
+   **🎉 That's it! WordPress is now fully automated:**
+   - ✅ WordPress core installed automatically
+   - ✅ Admin user created (admin/admin)
+   - ✅ WordPress MCP plugin activated and configured
+   - ✅ OpenID Connect plugin ready for SSO
+   - ✅ API keys generated automatically
 
-4. **Complete WordPress Installation**
-   - Open http://localhost:8080 in your browser
-   - Follow the WordPress installation wizard
-   - Create an admin user
-   - **Note**: Application passwords are enabled for local development
+4. **Verify the Setup**
+   - WordPress: http://localhost:8080 (admin/admin)
+   - WordPress Admin: http://localhost:8080/wp-admin
+   - OpenWebUI: http://localhost:3000
+   - Authentik: http://localhost:9000 (admin/admin)
 
-4. **Activate WordPress MCP Plugin**
-   - Go to WordPress Admin → Plugins
-   - Activate "WordPress MCP" plugin
-
-5. **Configure MCP Settings**
-   - Go to Settings → MCP Settings
-   - Enable MCP functionality
-   - Generate JWT authentication tokens
-
-6. **Test the Integration**
+5. **Test the Integration**
    ```bash
    ./scripts/test-integration.sh
    ```

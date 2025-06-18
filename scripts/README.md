@@ -4,6 +4,20 @@ This directory contains helper scripts for the WordPress and OpenWebUI Integrati
 
 ## Available Scripts
 
+### `build-wordpress.sh`
+**Purpose**: Builds the custom WordPress Docker image with pre-installed plugins
+
+**Usage**:
+```bash
+./scripts/build-wordpress.sh [tag]
+```
+
+**What it does**:
+- Builds a custom WordPress Docker image with WordPress MCP and OpenID Connect plugins pre-installed
+- Includes automated setup scripts to bypass manual configuration
+- Creates a production-ready WordPress image with SSO integration
+- Supports CI/CD deployment and scalable instance creation
+
 ### `setup.sh`
 **Purpose**: Automated setup of the entire PoC environment with official WordPress MCP plugin
 
@@ -56,10 +70,11 @@ This directory contains helper scripts for the WordPress and OpenWebUI Integrati
 
 ## Usage Order
 
-1. **Initial Setup**: `./scripts/setup.sh`
-2. **Manual Configuration**: Complete WordPress setup in browser
-3. **Test Integration**: `./scripts/test-integration.sh`
-4. **Cleanup**: `./scripts/cleanup.sh` (when done)
+1. **Build Custom Image**: `./scripts/build-wordpress.sh` (optional, docker-compose will build automatically)
+2. **Initial Setup**: `./scripts/setup.sh`
+3. **Automated Configuration**: WordPress setup is now fully automated with custom image
+4. **Test Integration**: `./scripts/test-integration.sh`
+5. **Cleanup**: `./scripts/cleanup.sh` (when done)
 
 ## Prerequisites
 

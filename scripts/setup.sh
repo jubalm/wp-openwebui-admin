@@ -38,36 +38,22 @@ fi
 
 # Create necessary directories
 echo "📁 Creating directory structure..."
-mkdir -p wordpress/{plugins,wp-content,uploads}
 mkdir -p openwebui/config
 mkdir -p scripts/test
 
-# Set proper permissions
-chmod -R 755 wordpress/
-chmod -R 755 openwebui/
+# Check WordPress MCP plugin (pre-installed in custom image)
+echo "🔌 WordPress MCP plugin is pre-installed in custom image"
 
-# Check WordPress MCP plugin
-echo "🔌 Checking WordPress MCP plugin..."
-if [ ! -f "wordpress/plugins/wordpress-mcp/wordpress-mcp.php" ]; then
-    echo "❌ WordPress MCP plugin not found. Please ensure the official wordpress-mcp plugin is in wordpress/plugins/wordpress-mcp/"
-    exit 1
-fi
-
-echo "🔌 Checking OpenID Connect plugin..."
-if [ ! -d "wordpress/plugins/openid-connect-generic" ]; then
-    echo "⚠️  OpenID Connect Generic plugin not found."
-    echo "   Please install it manually or via WordPress admin after setup."
-    echo "   See: wordpress/plugins/INSTALL-OPENID-CONNECT.md"
-fi
+echo "🔌 OpenID Connect plugin is pre-installed in custom image"
 
 # Start Docker containers
 echo "🐳 Starting Docker containers..."
 $DOCKER_COMPOSE down --remove-orphans 2>/dev/null || true
 $DOCKER_COMPOSE up -d
 
-# Wait for services to be ready
-echo "⏳ Waiting for services to start..."
-sleep 45
+# Wait for services to be ready (longer wait for automated WordPress setup)
+echo "⏳ Waiting for services to start and WordPress to auto-configure..."
+sleep 90
 
 # Check if Authentik is accessible
 echo "🔍 Checking Authentik availability..."
@@ -135,16 +121,21 @@ fi
 echo ""
 echo "🎉 Setup completed successfully!"
 echo ""
-echo "📋 Next Steps:"
-echo "1. Complete WordPress setup at: http://localhost:8080"
-echo "2. Set up Authentik authentication at: http://localhost:9000 (admin/admin)"
-echo "3. Install OpenID Connect Generic plugin in WordPress (see wordpress/plugins/INSTALL-OPENID-CONNECT.md)"
-echo "4. Configure OAuth providers in Authentik for WordPress and OpenWebUI"
-echo "5. Activate and configure the WordPress MCP plugin in WordPress admin"
-echo "6. Configure MCP settings in Settings > MCP Settings"
-echo "7. Generate a JWT token for API authentication"
-echo "8. Access OpenWebUI at: http://localhost:3000"
-echo "9. Run the test script: ./scripts/test-integration.sh"
+echo "✨ WordPress is now fully automated! No manual setup required."
+echo ""
+echo "📋 What's Ready:"
+echo "✅ WordPress MCP plugin is activated and configured"
+echo "✅ OpenID Connect plugin is installed and ready for Authentik SSO"
+echo "✅ Admin user created (admin/admin)"
+echo "✅ API key configured for MCP integration"
+echo "✅ Application passwords enabled"
+echo ""
+echo "📋 Optional SSO Configuration:"
+echo "1. Configure Authentik OAuth providers at: http://localhost:9000 (admin/admin)"
+echo "2. See docs/sso-setup-guide.md for SSO integration with WordPress and OpenWebUI"
+echo ""
+echo "🧪 Testing:"
+echo "   Run the integration test: ./scripts/test-integration.sh"
 echo ""
 echo "📚 Service URLs:"
 echo "   WordPress: http://localhost:8080"
@@ -152,10 +143,10 @@ echo "   OpenWebUI: http://localhost:3000"
 echo "   Authentik: http://localhost:9000"
 echo "   MariaDB: localhost:3306"
 echo ""
-echo "🔑 Authentication:"
+echo "🔑 Automated Authentication:"
+echo "   WordPress Admin: admin/admin (configured automatically)"
+echo "   MCP API Key: demo-api-key-poc (configured automatically)"
 echo "   Authentik Admin: admin/admin (change after first login)"
-echo "   Generate JWT tokens in WordPress admin: Settings > MCP Settings"
-echo "   Or use WordPress Application Passwords for basic auth"
 echo ""
 echo "🔐 SSO Configuration:"
 echo "   See docs/sso-setup-guide.md for detailed SSO configuration steps"
