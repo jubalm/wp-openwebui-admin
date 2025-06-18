@@ -46,27 +46,28 @@ services:
   # WordPress with MCP Plugin (Custom Image)
   wordpress:
     build:
-      context: ./docker/wordpress
-      dockerfile: Dockerfile
+      context: .
+      dockerfile: docker/wordpress/Dockerfile
     container_name: wp-instance
     restart: unless-stopped
     depends_on:
       - mysql
     environment:
+      # Core WordPress database configuration
       WORDPRESS_DB_HOST: ${WORDPRESS_DB_HOST:-mysql:3306}
       WORDPRESS_DB_USER: ${WORDPRESS_DB_USER:-wordpress}
       WORDPRESS_DB_PASSWORD: ${WORDPRESS_DB_PASSWORD:-wordpress_password}
       WORDPRESS_DB_NAME: ${WORDPRESS_DB_NAME:-wordpress}
       WORDPRESS_DEBUG: ${WORDPRESS_DEBUG:-1}
       WORDPRESS_CONFIG_EXTRA: ${WORDPRESS_CONFIG_EXTRA:-define('WP_ENVIRONMENT_TYPE', 'local');}
-      # Automated setup configuration
-      WORDPRESS_URL: ${WORDPRESS_URL:-http://localhost:8080}
-      WORDPRESS_TITLE: ${WORDPRESS_TITLE:-WordPress MCP Integration}
-      WORDPRESS_ADMIN_USER: ${WORDPRESS_ADMIN_USER:-admin}
-      WORDPRESS_ADMIN_PASS: ${WORDPRESS_ADMIN_PASS:-admin}
-      WORDPRESS_ADMIN_EMAIL: ${WORDPRESS_ADMIN_EMAIL:-admin@example.com}
+      # Site installation configuration using SITE_* variables
+      SITE_URL: ${SITE_URL:-http://localhost:8080}
+      SITE_TITLE: ${SITE_TITLE:-WordPress MCP Integration}
+      SITE_ADMIN_USER: ${SITE_ADMIN_USER:-admin}
+      SITE_ADMIN_PASSWORD: ${SITE_ADMIN_PASSWORD:-admin123}
+      SITE_ADMIN_EMAIL: ${SITE_ADMIN_EMAIL:-admin@example.com}
+      # Additional WordPress configuration
       WORDPRESS_MCP_API_KEY: ${WORDPRESS_MCP_API_KEY:-demo-api-key-poc}
-      # Site configuration options
       WORDPRESS_DESCRIPTION: ${WORDPRESS_DESCRIPTION:-WordPress MCP Integration Demo Site}
       WORDPRESS_LANGUAGE: ${WORDPRESS_LANGUAGE:-en_US}
       WORDPRESS_TIMEZONE: ${WORDPRESS_TIMEZONE:-UTC}

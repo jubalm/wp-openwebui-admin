@@ -34,13 +34,13 @@ Before starting, ensure you have the following installed:
    
    **🎉 That's it! WordPress is now fully automated:**
    - ✅ WordPress core installed automatically
-   - ✅ Admin user created (admin/admin)
+   - ✅ Admin user created (admin/admin123)
    - ✅ WordPress MCP plugin activated and configured
    - ✅ OpenID Connect plugin ready for SSO
    - ✅ API keys generated automatically
 
 4. **Verify the Setup**
-   - WordPress: http://localhost:8080 (admin/admin)
+   - WordPress: http://localhost:8080 (admin/admin123)
    - WordPress Admin: http://localhost:8080/wp-admin
    - OpenWebUI: http://localhost:3000
    - Authentik: http://localhost:9000 (admin/admin)
@@ -220,6 +220,20 @@ nano .env
 | `POSTGRES_PORT` | `5432` | PostgreSQL port |
 | `AUTHENTIK_PORT` | `9000` | Authentik HTTP port |
 | `WORDPRESS_CONFIG_EXTRA` | `define('WP_ENVIRONMENT_TYPE', 'local');` | Extra WordPress configuration |
+
+### WordPress Site Configuration (SITE_* variables)
+
+The WordPress Docker image supports fully automated installation using the following environment variables:
+
+| Variable | Default | Description |
+|----------|---------|-------------|
+| `SITE_URL` | `http://localhost:8080` | WordPress site URL |
+| `SITE_TITLE` | `WordPress MCP Integration` | Site title |
+| `SITE_ADMIN_USER` | `admin` | Admin username |
+| `SITE_ADMIN_PASSWORD` | `admin123` | Admin password |
+| `SITE_ADMIN_EMAIL` | `admin@example.com` | Admin email address |
+
+**Note**: These variables enable zero-configuration WordPress deployment. The setup wizard is completely bypassed, and WordPress is ready to use immediately after container startup.
 
 ### Key Configuration Notes
 
