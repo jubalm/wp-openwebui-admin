@@ -44,15 +44,29 @@ This directory contains helper scripts for the WordPress and OpenWebUI Integrati
 
 **What it does**:
 - Tests WordPress REST API connectivity
-- Tests WordPress post CRUD operations
+- Tests WordPress post CRUD operations using automated admin credentials
 - Validates MCP endpoint accessibility
 - Creates, reads, updates, and deletes test posts
 - Reports comprehensive test results
 
 **Prerequisites**: 
-- WordPress must be set up and WordPress MCP plugin activated
-- Authentication configured (JWT tokens or Application Passwords)
-- Update script variables with authentication credentials
+- WordPress fully automated setup (no manual configuration needed)
+- Uses default admin credentials from docker-compose environment
+
+### `test-sso.sh`
+**Purpose**: Validates SSO integration with Authentik for WordPress and OpenWebUI
+
+**Usage**:
+```bash
+./scripts/test-sso.sh
+```
+
+**What it does**:
+- Tests Authentik server availability
+- Validates OAuth endpoints
+- Checks WordPress and OpenWebUI accessibility
+- Reports SSO environment status
+- Provides manual configuration guidance
 
 ### `cleanup.sh`
 **Purpose**: Cleans up the PoC environment
@@ -72,8 +86,8 @@ This directory contains helper scripts for the WordPress and OpenWebUI Integrati
 
 1. **Build Custom Image**: `./scripts/build-wordpress.sh` (optional, docker-compose will build automatically)
 2. **Initial Setup**: `./scripts/setup.sh`
-3. **Automated Configuration**: WordPress setup is now fully automated with custom image
-4. **Test Integration**: `./scripts/test-integration.sh`
+3. **Test Integration**: `./scripts/test-integration.sh`
+4. **Test SSO**: `./scripts/test-sso.sh`
 5. **Cleanup**: `./scripts/cleanup.sh` (when done)
 
 ## Prerequisites

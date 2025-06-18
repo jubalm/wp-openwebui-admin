@@ -2,6 +2,7 @@
 
 # Test script to validate WordPress MCP Integration
 # Tests MCP functionality using the official WordPress MCP plugin
+# Works with automated WordPress setup
 
 set -e
 
@@ -9,26 +10,25 @@ set -e
 WP_API_BASE="http://localhost:8080/wp-json/wp/v2"
 MCP_API_BASE="http://localhost:8080/wp-json/wp/v2/wpmcp"
 
-# You need to set these after WordPress setup
-WP_USERNAME="admin"  # Set this to your WordPress admin username
-WP_PASSWORD=""       # Set this to your WordPress application password
-JWT_TOKEN=""         # Set this to your generated JWT token
+# Automated credentials from docker-compose setup
+WP_USERNAME="${SITE_ADMIN_USER:-admin}"  # Default admin user from automated setup
+WP_PASSWORD="${SITE_ADMIN_PASSWORD:-admin123}"  # Default admin password from automated setup
+JWT_TOKEN=""         # Can be set if you generated a JWT token
 
 echo "🧪 Testing WordPress MCP Integration..."
 echo ""
-echo "⚠️  Prerequisites:"
-echo "   1. Complete WordPress setup at http://localhost:8080"
-echo "   2. Activate the WordPress MCP plugin"
-echo "   3. Set WP_USERNAME and WP_PASSWORD variables in this script"
-echo "   4. Or generate a JWT token and set JWT_TOKEN variable"
+echo "✅ Using automated WordPress setup credentials:"
+echo "   Username: $WP_USERNAME"
+echo "   Password: [Using automated setup password]"
 echo ""
 
-# Check if authentication is configured
-if [ -z "$WP_PASSWORD" ] && [ -z "$JWT_TOKEN" ]; then
-    echo "❌ Authentication not configured!"
-    echo "   Please set either WP_PASSWORD (WordPress app password) or JWT_TOKEN in this script"
-    exit 1
-fi
+# WordPress should be fully automated, no manual setup required
+echo "ℹ️  WordPress is configured automatically with:"
+echo "   ✅ WordPress MCP plugin pre-installed and activated"
+echo "   ✅ Admin user created: $WP_USERNAME"
+echo "   ✅ Application passwords enabled"
+echo "   ✅ OpenID Connect plugin ready for SSO"
+echo ""
 
 # Function to make WordPress REST API calls
 make_wp_api_call() {
@@ -40,7 +40,7 @@ make_wp_api_call() {
         # Use JWT authentication
         auth_header="Authorization: Bearer $JWT_TOKEN"
     else
-        # Use basic authentication with application password
+        # Use basic authentication with admin credentials
         auth_header="Authorization: Basic $(echo -n "$WP_USERNAME:$WP_PASSWORD" | base64)"
     fi
     
@@ -155,6 +155,9 @@ echo "   WordPress REST API is functional"
 echo "   MCP endpoints are available for AI integration"
 echo ""
 echo "🤖 Next Steps for OpenWebUI Integration:"
-echo "   1. Generate JWT tokens in WordPress: Settings > MCP Settings"
-echo "   2. Configure OpenWebUI to connect to WordPress MCP endpoints"
-echo "   3. Use mcp-wordpress-remote package for MCP client integration"
+echo "   1. Configure OpenWebUI MCP client to connect to WordPress"
+echo "   2. Generate JWT tokens in WordPress for enhanced security"
+echo "   3. Test OpenWebUI MCP integration with WordPress"
+echo ""
+echo "🔐 SSO Integration:"
+echo "   Run './scripts/test-sso.sh' to validate Authentik SSO configuration"

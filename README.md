@@ -75,14 +75,18 @@ The project is organized as follows:
    ./scripts/setup.sh
    ```
 
-3. **Complete WordPress Setup:**
-   - Open http://localhost:8080 in your browser
-   - Follow WordPress installation wizard
-   - Activate the MCP Integration plugin
+3. **Automated WordPress Setup:**
+   WordPress is now fully automated with custom Docker image:
+   ```bash
+   # No manual setup required - WordPress is ready after setup
+   # Pre-installed plugins: WordPress MCP, OpenID Connect Generic
+   # Admin user: admin/admin123 (configurable via environment)
+   ```
 
 4. **Test the Integration:**
    ```bash
-   ./scripts/test-integration.sh
+   ./scripts/test-integration.sh  # Test WordPress MCP integration
+   ./scripts/test-sso.sh         # Validate SSO configuration
    ```
 
 5. **Access Services:**
@@ -125,6 +129,7 @@ All acceptance criteria have been successfully implemented and validated:
 # Run the complete PoC setup and test
 ./scripts/setup.sh
 ./scripts/test-integration.sh
+./scripts/test-sso.sh
 ```
 
 ## 🔧 API Integration

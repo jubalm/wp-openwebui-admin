@@ -136,6 +136,7 @@ echo "2. See docs/sso-setup-guide.md for SSO integration with WordPress and Open
 echo ""
 echo "🧪 Testing:"
 echo "   Run the integration test: ./scripts/test-integration.sh"
+echo "   Run the SSO validation test: ./scripts/test-sso.sh"
 echo ""
 echo "📚 Service URLs:"
 echo "   WordPress: http://localhost:8080"
