@@ -30,13 +30,21 @@ is_wordpress_installed() {
     return 1
 }
 
-# Function to setup WordPress configuration
-setup_wp_config() {
-    echo "Setting up WordPress configuration..."
+# Function to initialize WordPress after files are ready
+post_copy_initialization() {
+    echo "Running post-copy WordPress initialization..."
     
-    # Copy our custom wp-config if it doesn't exist
+    cd /var/www/html
+    
+    # Check if already initialized
+    if is_wordpress_installed; then
+        echo "WordPress already initialized, skipping setup."
+        return 0
+    fi
+    
+    # Setup our custom wp-config
     if [ ! -f "/var/www/html/wp-config.php" ]; then
-        echo "Copying custom wp-config.php..."
+        echo "Creating wp-config.php with custom settings..."
         cp /usr/src/wordpress/wp-config-custom.php /var/www/html/wp-config.php
         
         # Update wp-config.php with database settings
@@ -44,48 +52,50 @@ setup_wp_config() {
         sed -i "s/username_here/${WORDPRESS_DB_USER}/" /var/www/html/wp-config.php  
         sed -i "s/password_here/${WORDPRESS_DB_PASSWORD}/" /var/www/html/wp-config.php
         sed -i "s/localhost/${WORDPRESS_DB_HOST}/" /var/www/html/wp-config.php
-        
-        echo "WordPress configuration completed."
-    else
-        echo "wp-config.php already exists, skipping setup."
     fi
-}
-
-# Function to run complete WordPress initialization
-initialize_wordpress() {
-    echo "Initializing WordPress..."
-    
-    # Change to WordPress directory
-    cd /var/www/html
     
     # Wait for database
     wait_for_database
     
-    # Setup wp-config
-    setup_wp_config
-    
-    # Check if WordPress is already installed
-    if is_wordpress_installed; then
-        echo "WordPress is already installed, skipping initialization."
-        return 0
-    fi
-    
-    # Run our comprehensive initialization script
-    echo "Running WordPress installation and configuration..."
+    # Run the full WordPress initialization
     /usr/local/bin/init-wordpress.sh
     
-    echo "WordPress initialization completed successfully!"
+    echo "Post-copy initialization completed!"
 }
 
 # Main execution logic
 if [[ "$1" == apache2* ]] || [[ "$1" == php-fpm* ]]; then
     echo "Starting WordPress container with automated setup..."
     
-    # Initialize WordPress completely before starting the web server
-    initialize_wordpress
+    # Start the original WordPress entrypoint in background to let it copy files
+    echo "Starting WordPress file setup..."
+    /usr/local/bin/docker-entrypoint.sh "$@" &
+    WP_PID=$!
     
-    echo "WordPress setup complete. Starting web server..."
+    # Wait for WordPress files to be copied
+    echo "Waiting for WordPress files to be ready..."
+    attempts=0
+    while [ ! -f "/var/www/html/index.php" ] && [ $attempts -lt 30 ]; do
+        sleep 2
+        ((attempts++))
+    done
+    
+    if [ -f "/var/www/html/index.php" ]; then
+        echo "WordPress files are ready, running initialization..."
+        # Run our initialization now that files are copied
+        post_copy_initialization &
+        INIT_PID=$!
+        
+        # Wait for initialization to complete
+        wait $INIT_PID
+        echo "WordPress initialization completed, web server ready!"
+    else
+        echo "WordPress files not ready after waiting, continuing anyway..."
+    fi
+    
+    # Wait for the original WordPress process
+    wait $WP_PID
+else
+    # For non-web server commands, just run them directly
+    exec /usr/local/bin/docker-entrypoint.sh "$@"
 fi
-
-# Execute the original WordPress entrypoint
-exec /usr/local/bin/docker-entrypoint.sh "$@"

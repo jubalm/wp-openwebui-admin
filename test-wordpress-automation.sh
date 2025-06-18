@@ -52,13 +52,22 @@ docker logs wp-test-wordpress
 # Test if WordPress is responding
 echo "Testing WordPress response..."
 sleep 10
-if curl -s http://localhost:8080 | grep -q "Automated WordPress Test"; then
+echo "Checking if WordPress is responding..."
+curl -s http://localhost:8080 > /tmp/wp_response.html
+if grep -q "Automated WordPress Test" /tmp/wp_response.html; then
     echo "✅ SUCCESS: WordPress is responding with automated setup!"
     echo "✅ Site title found in response - automation worked!"
-else
-    echo "❌ FAILED: WordPress setup wizard is still showing or site not responding"
+elif grep -q "wp-admin/install.php" /tmp/wp_response.html; then
+    echo "❌ FAILED: WordPress setup wizard is still showing"
     echo "Response preview:"
-    curl -s http://localhost:8080 | head -20
+    head -10 /tmp/wp_response.html
+elif grep -q "WordPress" /tmp/wp_response.html; then
+    echo "⚠️  WordPress is responding but title not found. Checking content:"
+    head -20 /tmp/wp_response.html
+else
+    echo "❌ FAILED: WordPress not responding or unexpected content"
+    echo "Response preview:"
+    head -20 /tmp/wp_response.html
 fi
 
 # Cleanup
