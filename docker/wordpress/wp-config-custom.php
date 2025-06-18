@@ -4,6 +4,16 @@
  * This configuration bypasses the setup wizard and enables automated deployment
  */
 
+// MySQL settings - populated by environment variables or placeholders
+define('DB_NAME', 'database_name_here');
+define('DB_USER', 'username_here');
+define('DB_PASSWORD', 'password_here');
+define('DB_HOST', 'localhost');
+
+// Database charset and collation
+define('DB_CHARSET', 'utf8mb4');
+define('DB_COLLATE', '');
+
 // Enable local environment for application passwords without SSL
 define('WP_ENVIRONMENT_TYPE', 'local');
 
@@ -14,7 +24,7 @@ define('WP_CACHE', false);
 define('WP_AUTO_UPDATE_CORE', true);
 
 // Enable debug mode for development
-define('WP_DEBUG', true);
+define('WP_DEBUG', getenv('WORDPRESS_DEBUG') ? (bool) getenv('WORDPRESS_DEBUG') : true);
 define('WP_DEBUG_LOG', true);
 define('WP_DEBUG_DISPLAY', false);
 
@@ -29,34 +39,24 @@ define('WP_MEMORY_LIMIT', '256M');
 define('ALLOW_UNFILTERED_UPLOADS', true);
 
 // WordPress database table prefix
-$table_prefix = 'wp_';
-
-// Enable plugin activation via environment variables
-if (getenv('WORDPRESS_ACTIVATE_PLUGINS')) {
-    $active_plugins = explode(',', getenv('WORDPRESS_ACTIVATE_PLUGINS'));
-    foreach ($active_plugins as $plugin) {
-        if (!empty(trim($plugin))) {
-            add_action('init', function() use ($plugin) {
-                if (!is_plugin_active($plugin)) {
-                    activate_plugin($plugin);
-                }
-            });
-        }
-    }
-}
-
-// Auto-login configuration for development
-if (getenv('WORDPRESS_AUTO_ADMIN_USER') && getenv('WORDPRESS_AUTO_ADMIN_PASS')) {
-    define('WORDPRESS_AUTO_ADMIN_USER', getenv('WORDPRESS_AUTO_ADMIN_USER'));
-    define('WORDPRESS_AUTO_ADMIN_PASS', getenv('WORDPRESS_AUTO_ADMIN_PASS'));
-    define('WORDPRESS_AUTO_ADMIN_EMAIL', getenv('WORDPRESS_AUTO_ADMIN_EMAIL') ?: 'admin@example.com');
-}
+$table_prefix = getenv('WORDPRESS_TABLE_PREFIX') ?: 'wp_';
 
 // Set default site URL and home URL from environment
 if (getenv('WORDPRESS_URL')) {
     define('WP_HOME', getenv('WORDPRESS_URL'));
     define('WP_SITEURL', getenv('WORDPRESS_URL'));
 }
+
+// Force site URL and home URL for automated deployment
+$wordpress_url = getenv('WORDPRESS_URL') ?: 'http://localhost:8080';
+define('WP_HOME', $wordpress_url);
+define('WP_SITEURL', $wordpress_url);
+
+// Disable file editing in WordPress admin
+define('DISALLOW_FILE_EDIT', false);
+
+// Enable automatic database repair
+define('WP_ALLOW_REPAIR', true);
 
 // Authentication Unique Keys and Salts for security
 define('AUTH_KEY',         getenv('WORDPRESS_AUTH_KEY') ?: 'put your unique phrase here');
@@ -67,6 +67,11 @@ define('AUTH_SALT',        getenv('WORDPRESS_AUTH_SALT') ?: 'put your unique phr
 define('SECURE_AUTH_SALT', getenv('WORDPRESS_SECURE_AUTH_SALT') ?: 'put your unique phrase here');
 define('LOGGED_IN_SALT',   getenv('WORDPRESS_LOGGED_IN_SALT') ?: 'put your unique phrase here');
 define('NONCE_SALT',       getenv('WORDPRESS_NONCE_SALT') ?: 'put your unique phrase here');
+
+// Additional configuration from environment
+if (getenv('WORDPRESS_CONFIG_EXTRA')) {
+    eval(getenv('WORDPRESS_CONFIG_EXTRA'));
+}
 
 // Absolute path to the WordPress directory
 if ( ! defined( 'ABSPATH' ) ) {

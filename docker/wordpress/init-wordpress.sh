@@ -80,15 +80,62 @@ install_wordpress() {
             return 1
         fi
         
+        # Get configuration from environment variables with defaults
+        local site_url="${WORDPRESS_URL:-http://localhost:8080}"
+        local site_title="${WORDPRESS_TITLE:-WordPress MCP Integration}"
+        local admin_user="${WORDPRESS_ADMIN_USER:-admin}"
+        local admin_pass="${WORDPRESS_ADMIN_PASS:-admin}"
+        local admin_email="${WORDPRESS_ADMIN_EMAIL:-admin@example.com}"
+        local site_language="${WORDPRESS_LANGUAGE:-en_US}"
+        
         # Install WordPress
         wp core install \
-            --url="${WORDPRESS_URL:-http://localhost:8080}" \
-            --title="${WORDPRESS_TITLE:-WordPress MCP Integration}" \
-            --admin_user="${WORDPRESS_ADMIN_USER:-admin}" \
-            --admin_password="${WORDPRESS_ADMIN_PASS:-admin}" \
-            --admin_email="${WORDPRESS_ADMIN_EMAIL:-admin@example.com}" \
+            --url="$site_url" \
+            --title="$site_title" \
+            --admin_user="$admin_user" \
+            --admin_password="$admin_pass" \
+            --admin_email="$admin_email" \
             --skip-email \
             --allow-root
+            
+        # Set site language if specified
+        if [ "$site_language" != "en_US" ]; then
+            echo "Setting site language to $site_language..."
+            wp language core install "$site_language" --allow-root || echo "Warning: Could not install language $site_language"
+            wp site switch-language "$site_language" --allow-root || echo "Warning: Could not switch to language $site_language"
+        fi
+        
+        # Set additional site options from environment variables
+        if [ -n "${WORDPRESS_DESCRIPTION:-}" ]; then
+            echo "Setting site description: ${WORDPRESS_DESCRIPTION}"
+            wp option update blogdescription "${WORDPRESS_DESCRIPTION}" --allow-root
+        fi
+        
+        if [ -n "${WORDPRESS_TIMEZONE:-}" ]; then
+            echo "Setting timezone: ${WORDPRESS_TIMEZONE}"
+            wp option update timezone_string "${WORDPRESS_TIMEZONE}" --allow-root
+        fi
+        
+        if [ -n "${WORDPRESS_DATE_FORMAT:-}" ]; then
+            echo "Setting date format: ${WORDPRESS_DATE_FORMAT}"
+            wp option update date_format "${WORDPRESS_DATE_FORMAT}" --allow-root
+        fi
+        
+        if [ -n "${WORDPRESS_TIME_FORMAT:-}" ]; then
+            echo "Setting time format: ${WORDPRESS_TIME_FORMAT}"  
+            wp option update time_format "${WORDPRESS_TIME_FORMAT}" --allow-root
+        fi
+        
+        if [ -n "${WORDPRESS_WEEK_STARTS_ON:-}" ]; then
+            echo "Setting week start day: ${WORDPRESS_WEEK_STARTS_ON}"
+            wp option update start_of_week "${WORDPRESS_WEEK_STARTS_ON}" --allow-root
+        fi
+        
+        # Set default theme if specified
+        if [ -n "${WORDPRESS_DEFAULT_THEME:-}" ]; then
+            echo "Activating theme: ${WORDPRESS_DEFAULT_THEME}"
+            wp theme activate "${WORDPRESS_DEFAULT_THEME}" --allow-root || echo "Warning: Could not activate theme ${WORDPRESS_DEFAULT_THEME}"
+        fi
             
         echo "WordPress core installed successfully!"
     else
