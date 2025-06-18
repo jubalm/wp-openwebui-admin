@@ -14,9 +14,7 @@ echo "Starting WordPress with custom entrypoint..."
     # Add detailed logging for database connection check
     until wp --allow-root --path="/var/www/html" db check 2>/dev/null; do
         echo "Database not ready, waiting..."
-        echo "Attempting database connection with host: ${WORDPRESS_DB_HOST}" >&2
-        wp --allow-root --path="/var/www/html" db check || echo "Database connection failed. Retrying..." >&2
-        sleep 5  # Increase wait time to ensure database readiness
+        sleep 3
     done
 
     echo "Database connection established!"
@@ -65,4 +63,4 @@ echo "Starting WordPress with custom entrypoint..."
 } &
 
 # Run the original WordPress entrypoint
-exec docker-entrypoint.sh php-fpm
+exec docker-entrypoint.sh apache2-foreground
