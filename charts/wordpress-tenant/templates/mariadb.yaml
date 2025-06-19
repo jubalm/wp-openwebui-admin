@@ -1,0 +1,156 @@
+{{- if .Values.database.internal.enabled }}
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: {{ include "wordpress-tenant.fullname" . }}-mariadb
+  labels:
+    {{- include "wordpress-tenant.labels" . | nindent 4 }}
+    app.kubernetes.io/component: database
+spec:
+  serviceName: {{ include "wordpress-tenant.fullname" . }}-mariadb
+  replicas: 1
+  selector:
+    matchLabels:
+      {{- include "wordpress-tenant.selectorLabels" . | nindent 6 }}
+      app.kubernetes.io/component: database
+  template:
+    metadata:
+      labels:
+        {{- include "wordpress-tenant.labels" . | nindent 8 }}
+        app.kubernetes.io/component: database
+    spec:
+      containers:
+        - name: mariadb
+          image: mariadb:10.6
+          ports:
+            - name: mysql
+              containerPort: 3306
+              protocol: TCP
+          env:
+            - name: MARIADB_ROOT_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "wordpress-tenant.fullname" . }}-mariadb
+                  key: mariadb-root-password
+            - name: MARIADB_DATABASE
+              value: {{ .Values.database.internal.auth.database }}
+            - name: MARIADB_USER
+              value: {{ .Values.database.internal.auth.username }}
+            - name: MARIADB_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "wordpress-tenant.fullname" . }}-mariadb
+                  key: mariadb-password
+          livenessProbe:
+            tcpSocket:
+              port: 3306
+            initialDelaySeconds: 30
+            periodSeconds: 10
+            timeoutSeconds: 5
+            failureThreshold: 3
+          readinessProbe:
+            exec:
+              command:
+                - /bin/bash
+                - -c
+                - mysql -u$MARIADB_USER -p$MARIADB_PASSWORD -e 'SELECT 1'
+            initialDelaySeconds: 5
+            periodSeconds: 5
+            timeoutSeconds: 3
+            failureThreshold: 3
+          resources:
+            {{- toYaml .Values.database.internal.resources | nindent 12 }}
+          volumeMounts:
+            - name: data
+              mountPath: /var/lib/mysql
+            - name: config
+              mountPath: /etc/mysql/conf.d
+      volumes:
+        - name: config
+          configMap:
+            name: {{ include "wordpress-tenant.fullname" . }}-mariadb-config
+  {{- if .Values.database.internal.primary.persistence.enabled }}
+  volumeClaimTemplates:
+    - metadata:
+        name: data
+      spec:
+        accessModes:
+          - ReadWriteOnce
+        resources:
+          requests:
+            storage: {{ .Values.database.internal.primary.persistence.size }}
+        {{- if .Values.database.internal.primary.persistence.storageClass }}
+        storageClassName: {{ .Values.database.internal.primary.persistence.storageClass }}
+        {{- end }}
+  {{- else }}
+        - name: data
+          emptyDir: {}
+  {{- end }}
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "wordpress-tenant.fullname" . }}-mariadb
+  labels:
+    {{- include "wordpress-tenant.labels" . | nindent 4 }}
+    app.kubernetes.io/component: database
+spec:
+  type: ClusterIP
+  ports:
+    - port: 3306
+      targetPort: mysql
+      protocol: TCP
+      name: mysql
+  selector:
+    {{- include "wordpress-tenant.selectorLabels" . | nindent 4 }}
+    app.kubernetes.io/component: database
+
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: {{ include "wordpress-tenant.fullname" . }}-mariadb
+  labels:
+    {{- include "wordpress-tenant.labels" . | nindent 4 }}
+type: Opaque
+data:
+  mariadb-root-password: {{ .Values.database.internal.auth.rootPassword | default (randAlphaNum 16) | b64enc }}
+  mariadb-password: {{ .Values.database.internal.auth.password | default (randAlphaNum 16) | b64enc }}
+
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "wordpress-tenant.fullname" . }}-mariadb-config
+  labels:
+    {{- include "wordpress-tenant.labels" . | nindent 4 }}
+data:
+  my.cnf: |
+    [mysqld]
+    skip-host-cache
+    skip-name-resolve
+    explicit_defaults_for_timestamp
+    basedir=/opt/bitnami/mariadb
+    plugin_dir=/opt/bitnami/mariadb/plugin
+    port=3306
+    socket=/opt/bitnami/mariadb/tmp/mysql.sock
+    tmpdir=/opt/bitnami/mariadb/tmp
+    max_allowed_packet=16M
+    bind-address=0.0.0.0
+    pid-file=/opt/bitnami/mariadb/tmp/mysqld.pid
+    log-error=/opt/bitnami/mariadb/logs/mysqld.log
+    character-set-server=UTF8
+    collation-server=utf8_general_ci
+    
+    [client]
+    port=3306
+    socket=/opt/bitnami/mariadb/tmp/mysql.sock
+    default-character-set=UTF8
+    plugin_dir=/opt/bitnami/mariadb/plugin
+    
+    [manager]
+    port=3306
+    socket=/opt/bitnami/mariadb/tmp/mysql.sock
+    pid-file=/opt/bitnami/mariadb/tmp/mysqld.pid
+{{- end }}

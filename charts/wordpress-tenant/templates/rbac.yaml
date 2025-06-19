@@ -1,0 +1,41 @@
+{{- if .Values.rbac.create }}
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  labels:
+    {{- include "wordpress-tenant.labels" . | nindent 4 }}
+  name: {{ include "wordpress-tenant.fullname" . }}
+rules:
+  # Allow access to secrets for configuration
+  - apiGroups: [""]
+    resources: ["secrets"]
+    verbs: ["get", "list"]
+  # Allow access to configmaps
+  - apiGroups: [""]
+    resources: ["configmaps"]
+    verbs: ["get", "list"]
+  # Allow access to persistent volume claims
+  - apiGroups: [""]
+    resources: ["persistentvolumeclaims"]
+    verbs: ["get", "list"]
+  # Allow reading services for service discovery
+  - apiGroups: [""]
+    resources: ["services"]
+    verbs: ["get", "list"]
+
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  labels:
+    {{- include "wordpress-tenant.labels" . | nindent 4 }}
+  name: {{ include "wordpress-tenant.fullname" . }}
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: {{ include "wordpress-tenant.fullname" . }}
+subjects:
+  - kind: ServiceAccount
+    name: {{ include "wordpress-tenant.serviceAccountName" . }}
+    namespace: {{ .Release.Namespace }}
+{{- end }}

@@ -1,0 +1,84 @@
+{{- if .Values.networkPolicy.enabled }}
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: {{ include "wordpress-tenant.fullname" . }}
+  labels:
+    {{- include "wordpress-tenant.labels" . | nindent 4 }}
+spec:
+  podSelector:
+    matchLabels:
+      {{- include "wordpress-tenant.selectorLabels" . | nindent 6 }}
+  policyTypes:
+    - Ingress
+    - Egress
+  ingress:
+    # Allow ingress from shared services namespace (for Authentik SSO)
+    {{- if .Values.networkPolicy.allowFromSharedServices }}
+    - from:
+        - namespaceSelector:
+            matchLabels:
+              name: {{ .Values.global.sharedServicesNamespace }}
+      ports:
+        - protocol: TCP
+          port: 80
+    {{- end }}
+    # Allow ingress from ingress controller
+    - from: []
+      ports:
+        - protocol: TCP
+          port: 80
+    # Allow ingress within the same namespace
+    - from:
+        - namespaceSelector:
+            matchLabels:
+              name: {{ .Release.Namespace }}
+      ports:
+        - protocol: TCP
+          port: 80
+    # Additional ingress rules
+    {{- with .Values.networkPolicy.ingress }}
+    {{- toYaml . | nindent 4 }}
+    {{- end }}
+  egress:
+    # Allow egress to database
+    {{- if .Values.database.internal.enabled }}
+    - to:
+        - podSelector:
+            matchLabels:
+              {{- include "wordpress-tenant.selectorLabels" . | nindent 14 }}
+              app.kubernetes.io/component: database
+      ports:
+        - protocol: TCP
+          port: 3306
+    {{- else }}
+    - to: []
+      ports:
+        - protocol: TCP
+          port: {{ .Values.database.external.port }}
+    {{- end }}
+    # Allow egress to shared services (Authentik)
+    {{- if .Values.networkPolicy.allowFromSharedServices }}
+    - to:
+        - namespaceSelector:
+            matchLabels:
+              name: {{ .Values.global.sharedServicesNamespace }}
+      ports:
+        - protocol: TCP
+          port: 9000
+    {{- end }}
+    # Allow egress to DNS
+    - to: []
+      ports:
+        - protocol: UDP
+          port: 53
+    # Allow egress to HTTPS for updates and external APIs
+    - to: []
+      ports:
+        - protocol: TCP
+          port: 443
+    # Additional egress rules
+    {{- with .Values.networkPolicy.egress }}
+    {{- toYaml . | nindent 4 }}
+    {{- end }}
+{{- end }}
