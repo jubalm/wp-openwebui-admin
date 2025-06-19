@@ -1,0 +1,91 @@
+{{- if .Values.networkPolicy.enabled }}
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: {{ include "openwebui.fullname" . }}
+  labels:
+    {{- include "openwebui.labels" . | nindent 4 }}
+spec:
+  podSelector:
+    matchLabels:
+      {{- include "openwebui.selectorLabels" . | nindent 6 }}
+  policyTypes:
+    - Ingress
+    - Egress
+  ingress:
+    # Allow ingress from tenant namespaces
+    {{- if .Values.networkPolicy.allowFromTenantNamespaces }}
+    - from:
+        - namespaceSelector:
+            matchExpressions:
+              - key: name
+                operator: In
+                values:
+                  {{- $pattern := .Values.networkPolicy.tenantNamespacePattern | replace "*" "" }}
+                  {{- range $i := until 10 }}
+                  - {{ $pattern }}{{ $i }}
+                  {{- end }}
+      ports:
+        - protocol: TCP
+          port: 8080
+    {{- end }}
+    # Allow ingress from ingress controller
+    - from: []
+      ports:
+        - protocol: TCP
+          port: 8080
+    # Allow ingress within the same namespace (shared services)
+    - from:
+        - namespaceSelector:
+            matchLabels:
+              name: {{ .Values.sharedServicesNamespace }}
+      ports:
+        - protocol: TCP
+          port: 8080
+    # Additional ingress rules
+    {{- with .Values.networkPolicy.ingress }}
+    {{- toYaml . | nindent 4 }}
+    {{- end }}
+  egress:
+    # Allow egress to Authentik for OAuth
+    - to:
+        - namespaceSelector:
+            matchLabels:
+              name: {{ .Values.sharedServicesNamespace }}
+        - podSelector:
+            matchLabels:
+              app.kubernetes.io/name: authentik
+      ports:
+        - protocol: TCP
+          port: 9000
+    # Allow egress to tenant WordPress instances
+    {{- if .Values.networkPolicy.allowFromTenantNamespaces }}
+    - to:
+        - namespaceSelector:
+            matchExpressions:
+              - key: name
+                operator: In
+                values:
+                  {{- $pattern := .Values.networkPolicy.tenantNamespacePattern | replace "*" "" }}
+                  {{- range $i := until 10 }}
+                  - {{ $pattern }}{{ $i }}
+                  {{- end }}
+      ports:
+        - protocol: TCP
+          port: 80
+    {{- end }}
+    # Allow egress to DNS
+    - to: []
+      ports:
+        - protocol: UDP
+          port: 53
+    # Allow egress to HTTPS for external APIs and updates
+    - to: []
+      ports:
+        - protocol: TCP
+          port: 443
+    # Additional egress rules
+    {{- with .Values.networkPolicy.egress }}
+    {{- toYaml . | nindent 4 }}
+    {{- end }}
+{{- end }}

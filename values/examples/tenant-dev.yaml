@@ -1,0 +1,111 @@
+# Development tenant values for local testing
+# Usage: helm install tenant-dev ./charts/wordpress-tenant -f values/examples/tenant-dev.yaml
+
+# Global settings
+global:
+  tenant: "dev"
+  sharedServicesNamespace: "shared-services"
+
+# WordPress configuration
+wordpress:
+  image:
+    repository: custom-wordpress
+    tag: latest
+    pullPolicy: IfNotPresent
+  
+  resources:
+    limits:
+      cpu: 250m
+      memory: 256Mi
+    requests:
+      cpu: 100m
+      memory: 128Mi
+  
+  replicaCount: 1
+  
+  site:
+    url: "http://dev.local:8080"
+    title: "Development WordPress"
+    adminUser: "admin"
+    adminEmail: "admin@dev.local"
+    adminPassword: "admin123"  # Simple password for development
+  
+  config:
+    debug: true
+    environment: "development"
+    tablePrefix: "dev_"
+    language: "en_US"
+    timezone: "UTC"
+  
+  mcp:
+    enabled: true
+  
+  auth:
+    oauth:
+      enabled: false  # Disable OAuth for simple development
+
+# Database configuration - using internal database for development
+database:
+  type: mariadb
+  external:
+    enabled: false
+  internal:
+    enabled: true
+    auth:
+      rootPassword: "root123"
+      database: "wordpress"
+      username: "wordpress"
+      password: "wp123"
+    
+    primary:
+      persistence:
+        enabled: false  # Use emptyDir for development
+    
+    resources:
+      limits:
+        cpu: 100m
+        memory: 128Mi
+      requests:
+        cpu: 50m
+        memory: 64Mi
+
+# Persistence configuration
+persistence:
+  enabled: false  # Use emptyDir for development
+
+# Service configuration
+service:
+  type: NodePort
+  port: 80
+
+# Ingress configuration - disabled for development
+ingress:
+  enabled: false
+
+# LoadBalancer - disabled for development
+loadBalancer:
+  enabled: false
+
+# Security settings - relaxed for development
+securityContext:
+  runAsNonRoot: false
+  runAsUser: 33
+  runAsGroup: 33
+  fsGroup: 33
+
+# Autoscaling - disabled for development
+autoscaling:
+  enabled: false
+
+# Network policies - disabled for development
+networkPolicy:
+  enabled: false
+
+# Monitoring - disabled for development
+monitoring:
+  serviceMonitor:
+    enabled: false
+
+# Backup - disabled for development
+backup:
+  enabled: false

@@ -1,0 +1,78 @@
+{{- if .Values.rbac.create }}
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  labels:
+    {{- include "openwebui.labels" . | nindent 4 }}
+  name: {{ include "openwebui.fullname" . }}
+rules:
+  # Allow access to secrets for configuration
+  - apiGroups: [""]
+    resources: ["secrets"]
+    verbs: ["get", "list"]
+  # Allow access to configmaps
+  - apiGroups: [""]
+    resources: ["configmaps"]
+    verbs: ["get", "list"]
+  # Allow access to persistent volume claims
+  - apiGroups: [""]
+    resources: ["persistentvolumeclaims"]
+    verbs: ["get", "list"]
+  # Allow reading services for service discovery
+  - apiGroups: [""]
+    resources: ["services"]
+    verbs: ["get", "list"]
+  # Allow reading endpoints for service discovery
+  - apiGroups: [""]
+    resources: ["endpoints"]
+    verbs: ["get", "list"]
+
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  labels:
+    {{- include "openwebui.labels" . | nindent 4 }}
+  name: {{ include "openwebui.fullname" . }}
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: {{ include "openwebui.fullname" . }}
+subjects:
+  - kind: ServiceAccount
+    name: {{ include "openwebui.serviceAccountName" . }}
+    namespace: {{ .Release.Namespace }}
+
+---
+{{- if .Values.networkPolicy.allowFromTenantNamespaces }}
+# ClusterRole for cross-namespace service discovery
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  labels:
+    {{- include "openwebui.labels" . | nindent 4 }}
+  name: {{ include "openwebui.fullname" . }}-tenant-discovery
+rules:
+  # Allow discovery of services in tenant namespaces
+  - apiGroups: [""]
+    resources: ["services", "endpoints"]
+    verbs: ["get", "list"]
+    resourceNames: []
+
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  labels:
+    {{- include "openwebui.labels" . | nindent 4 }}
+  name: {{ include "openwebui.fullname" . }}-tenant-discovery
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: {{ include "openwebui.fullname" . }}-tenant-discovery
+subjects:
+  - kind: ServiceAccount
+    name: {{ include "openwebui.serviceAccountName" . }}
+    namespace: {{ .Release.Namespace }}
+{{- end }}
+{{- end }}

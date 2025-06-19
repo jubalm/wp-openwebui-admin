@@ -1,0 +1,52 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "openwebui.fullname" . }}
+  labels:
+    {{- include "openwebui.labels" . | nindent 4 }}
+data:
+  # OpenWebUI configuration
+  config.yaml: |
+    # Basic configuration
+    name: {{ .Values.openwebui.config.name | quote }}
+    url: {{ .Values.openwebui.config.url | quote }}
+    default_user_role: {{ .Values.openwebui.config.defaultUserRole | quote }}
+    enable_signup: {{ .Values.openwebui.config.enableSignup }}
+    
+    {{- if .Values.openwebui.oauth.enabled }}
+    # OAuth configuration
+    oauth:
+      enabled: true
+      client_id: {{ .Values.openwebui.oauth.clientId | quote }}
+      scopes: {{ .Values.openwebui.oauth.scopes | quote }}
+      provider_name: {{ .Values.openwebui.oauth.providerName | quote }}
+      redirect_uri: {{ .Values.openwebui.config.url | quote }}/oauth/callback
+      authorization_url: "http://authentik-server.{{ .Values.sharedServicesNamespace }}.svc.cluster.local:9000/application/o/authorize/"
+      token_url: "http://authentik-server.{{ .Values.sharedServicesNamespace }}.svc.cluster.local:9000/application/o/token/"
+      userinfo_url: "http://authentik-server.{{ .Values.sharedServicesNamespace }}.svc.cluster.local:9000/application/o/userinfo/"
+    {{- end }}
+    
+    # Admin settings
+    admin:
+      email: {{ .Values.openwebui.config.adminSettings.adminEmail | quote }}
+    
+    # Multi-tenant settings
+    tenant:
+      # Allow connections from tenant namespaces
+      allow_tenant_access: {{ .Values.networkPolicy.allowFromTenantNamespaces }}
+      tenant_namespace_pattern: {{ .Values.networkPolicy.tenantNamespacePattern | quote }}
+  
+  # Additional configuration files can be added here
+  app.conf: |
+    # Application specific configuration
+    [web]
+    port = 8080
+    host = 0.0.0.0
+    
+    [security]
+    enable_cors = true
+    allowed_origins = ["{{ .Values.openwebui.config.url }}"]
+    
+    [logging]
+    level = info
+    format = json

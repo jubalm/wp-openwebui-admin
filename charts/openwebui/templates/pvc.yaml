@@ -1,0 +1,17 @@
+{{- if .Values.openwebui.persistence.enabled }}
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: {{ include "openwebui.fullname" . }}-pvc
+  labels:
+    {{- include "openwebui.labels" . | nindent 4 }}
+spec:
+  accessModes:
+    - {{ .Values.openwebui.persistence.accessMode }}
+  resources:
+    requests:
+      storage: {{ .Values.openwebui.persistence.size }}
+  {{- if .Values.openwebui.persistence.storageClass }}
+  storageClassName: {{ .Values.openwebui.persistence.storageClass }}
+  {{- end }}
+{{- end }}

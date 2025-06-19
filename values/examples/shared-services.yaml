@@ -1,0 +1,200 @@
+# Shared services configuration
+# Usage: helm install shared-services ./charts/shared-services -f values/examples/shared-services.yaml
+
+# Authentik SSO configuration
+authentik:
+  image:
+    repository: ghcr.io/goauthentik/server
+    tag: "2025.6.2"
+    pullPolicy: IfNotPresent
+  
+  # Server component
+  server:
+    replicaCount: 2
+    resources:
+      limits:
+        cpu: 1000m
+        memory: 1Gi
+      requests:
+        cpu: 500m
+        memory: 512Mi
+    
+    # Authentik configuration
+    config:
+      secretKey: "authentik-secret-key-change-in-production"
+      errorReporting: false
+      bootstrapPassword: "admin"
+      bootstrapToken: "bootstrap-token"
+      bootstrapEmail: "admin@example.com"
+  
+  # Worker component
+  worker:
+    replicaCount: 1
+    resources:
+      limits:
+        cpu: 500m
+        memory: 512Mi
+      requests:
+        cpu: 250m
+        memory: 256Mi
+  
+  # Service configuration
+  service:
+    type: ClusterIP
+    port: 9000
+    httpsPort: 9443
+  
+  # Ingress for Authentik
+  ingress:
+    enabled: true
+    className: "nginx"
+    annotations:
+      kubernetes.io/tls-acme: "true"
+      cert-manager.io/cluster-issuer: "letsencrypt-prod"
+    hosts:
+      - host: auth.example.com
+        paths:
+          - path: /
+            pathType: Prefix
+    tls:
+      - secretName: authentik-tls
+        hosts:
+          - auth.example.com
+
+# PostgreSQL database for Authentik
+postgresql:
+  enabled: true
+  image:
+    repository: postgres
+    tag: "15-alpine"
+    pullPolicy: IfNotPresent
+  
+  auth:
+    postgresPassword: "postgres-root-password"
+    username: "authentik"
+    password: "authentik-password"
+    database: "authentik"
+  
+  primary:
+    persistence:
+      enabled: true
+      size: 20Gi
+      storageClass: "standard"
+    
+    resources:
+      limits:
+        cpu: 500m
+        memory: 512Mi
+      requests:
+        cpu: 250m
+        memory: 256Mi
+
+# Redis for Authentik caching
+redis:
+  enabled: true
+  image:
+    repository: redis
+    tag: "7-alpine"
+    pullPolicy: IfNotPresent
+  
+  auth:
+    enabled: false  # Disable auth for simplicity in shared services
+  
+  master:
+    persistence:
+      enabled: true
+      size: 5Gi
+      storageClass: "standard"
+    
+    resources:
+      limits:
+        cpu: 250m
+        memory: 256Mi
+      requests:
+        cpu: 100m
+        memory: 128Mi
+
+# OpenWebUI shared instance
+openwebui:
+  enabled: true
+  image:
+    repository: ghcr.io/open-webui/open-webui
+    tag: main
+    pullPolicy: IfNotPresent
+  
+  replicaCount: 2
+  
+  resources:
+    limits:
+      cpu: 1000m
+      memory: 1Gi
+    requests:
+      cpu: 500m
+      memory: 512Mi
+  
+  config:
+    name: "Multi-Tenant WordPress Portal"
+    url: "https://portal.example.com"
+    defaultUserRole: "user"
+    enableSignup: false
+  
+  oauth:
+    enabled: true
+    clientId: "openwebui"
+    scopes: "openid profile email"
+    providerName: "Authentik"
+  
+  persistence:
+    enabled: true
+    size: 10Gi
+    storageClass: "standard"
+  
+  service:
+    type: ClusterIP
+    port: 8080
+  
+  ingress:
+    enabled: true
+    className: "nginx"
+    annotations:
+      kubernetes.io/tls-acme: "true"
+      cert-manager.io/cluster-issuer: "letsencrypt-prod"
+    hosts:
+      - host: portal.example.com
+        paths:
+          - path: /
+            pathType: Prefix
+    tls:
+      - secretName: openwebui-tls
+        hosts:
+          - portal.example.com
+
+# Network policies for shared services
+networkPolicy:
+  enabled: true
+  allowFromTenantNamespaces: true
+  tenantNamespacePattern: "tenant-*"
+
+# Monitoring configuration
+monitoring:
+  prometheus:
+    enabled: true
+  grafana:
+    enabled: true
+  
+  serviceMonitor:
+    enabled: true
+    interval: 30s
+
+# Backup configuration for shared services
+backup:
+  enabled: true
+  schedule: "0 1 * * *"  # Daily at 1 AM
+  retention: "30d"
+  
+  postgresql:
+    enabled: true
+  redis:
+    enabled: true
+  authentik:
+    enabled: true
