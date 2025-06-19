@@ -2,7 +2,7 @@
 
 **Version:** 0.0.1  
 **Date:** 2025-06-16  
-**Author:** @jubalm
+**Author:** Jubal Mabaquiao
 
 ## 1. Introduction
 
@@ -13,7 +13,8 @@ A primary objective of the initial Proof of Concept (PoC) is to **showcase the c
 ## 2. Goals and Objectives
 
 - **Demonstrate IONOS Cloud Capabilities:** Develop a Proof of Concept (PoC) that highlights the IONOS cloud platform's strengths in Kubernetes orchestration, infrastructure automation, and application hosting for a multi-tenant SaaS offering.
-- **Enable Multi-Tenancy:** Securely host multiple tenants (starting with a single tenant for the PoC), each with their own isolated WordPress and OpenWebUI instances.
+- **Enable Multi-Tenancy:** Securely host multiple tenants (starting with a single tenant for the PoC), each with their own isolated WordPress instance and a user account in OpenWebUI.
+- **Admin Management:** Ensure OpenWebUI administration is managed by platform administrators, with tenant users having non-admin roles.
 - **Automate Provisioning:** Automate the setup of tenant infrastructure and application deployment using industry-best practices and tools.
 - **Design for Scalability:** Design the platform architecture to support future scaling for an increasing number of tenants and varying workloads on the IONOS cloud.
 - **Simplify Management:** Provide clear processes for tenant onboarding, lifecycle management, and configuration.
@@ -29,13 +30,15 @@ A primary objective of the initial Proof of Concept (PoC) is to **showcase the c
 ### 4.1. Core Application Stack per Tenant
 
 - Each tenant will have a dedicated WordPress instance with the MCP (Model Context Protocol) plugin installed and configured.
+- Each tenant will have a user account in OpenWebUI with non-admin privileges for content management.
+- OpenWebUI administration will be managed exclusively by platform administrators, ensuring separation of roles and responsibilities.
 - Each tenant will have a dedicated OpenWebUI instance.
 - OpenWebUI will be configured to integrate with the tenant's WordPress instance via the MCP plugin for content management.
 
 ### 4.2. Tenant Isolation
 
 - **Strategy:** Implement a robust tenant isolation strategy following the comprehensive analysis and recommendations outlined in the [Tenant Isolation Strategy document](tenant-isolation-strategy.md). The chosen approach uses Kubernetes namespaces with strict NetworkPolicies and RBAC for the PoC, with a clear migration path to dedicated clusters for production scaling.
-- **Data Isolation:** Ensure data (WordPress database, file uploads, OpenWebUI configurations, logs) is strictly isolated between tenants.
+- **Data Isolation:** Ensure data (WordPress database, file uploads, OpenWebUI configurations, logs) is strictly isolated between tenants, while OpenWebUI remains a centralized instance managed by platform administrators.
 - **Implementation Details:** See the [Tenant Isolation Strategy](tenant-isolation-strategy.md) for detailed implementation guidance, security considerations, and operational procedures.
 
 ### 4.3. Automated Infrastructure Provisioning
