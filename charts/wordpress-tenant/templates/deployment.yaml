@@ -39,7 +39,12 @@ spec:
           args:
             - |
               echo "Waiting for database to be ready..."
-              {{- if .Values.database.external.enabled }}
+              {{- if .Values.database.ionos.enabled }}
+              until nc -z {{ .Values.database.ionos.host }} {{ .Values.database.ionos.port }}; do
+                echo "Waiting for IONOS hosted MariaDB..."
+                sleep 2
+              done
+              {{- else if .Values.database.external.enabled }}
               until nc -z {{ .Values.database.external.host }} {{ .Values.database.external.port }}; do
                 echo "Waiting for external database..."
                 sleep 2
@@ -79,7 +84,33 @@ spec:
             failureThreshold: 3
           env:
             # Database configuration
-            {{- if .Values.database.external.enabled }}
+            {{- if .Values.database.ionos.enabled }}
+            - name: WORDPRESS_DB_HOST
+              value: "{{ .Values.database.ionos.host }}:{{ .Values.database.ionos.port }}"
+            - name: WORDPRESS_DB_NAME
+              value: {{ .Values.database.ionos.name }}
+            - name: WORDPRESS_DB_USER
+              value: {{ .Values.database.ionos.user }}
+            - name: WORDPRESS_DB_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "wordpress-tenant.fullname" . }}-ionos-db
+                  key: password
+            # IONOS SSL configuration
+            {{- if .Values.database.ionos.ssl.enabled }}
+            - name: WORDPRESS_DB_SSL
+              value: "true"
+            - name: WORDPRESS_DB_SSL_MODE
+              value: {{ .Values.database.ionos.ssl.mode }}
+            - name: WORDPRESS_DB_SSL_CA
+              value: "/etc/ssl/certs/ionos-ca.pem"
+            {{- end }}
+            # IONOS connection settings
+            - name: WORDPRESS_DB_CHARSET
+              value: {{ .Values.database.ionos.connection.charset }}
+            - name: WORDPRESS_DB_COLLATE
+              value: {{ .Values.database.ionos.connection.collation }}
+            {{- else if .Values.database.external.enabled }}
             - name: WORDPRESS_DB_HOST
               value: "{{ .Values.database.external.host }}:{{ .Values.database.external.port }}"
             - name: WORDPRESS_DB_NAME
@@ -91,6 +122,17 @@ spec:
                 secretKeyRef:
                   name: {{ include "wordpress-tenant.fullname" . }}-db
                   key: password
+            # External database SSL configuration
+            {{- if .Values.database.external.ssl.enabled }}
+            - name: WORDPRESS_DB_SSL
+              value: "true"
+            - name: WORDPRESS_DB_SSL_MODE
+              value: {{ .Values.database.external.ssl.mode }}
+            {{- if .Values.database.external.ssl.caCert }}
+            - name: WORDPRESS_DB_SSL_CA
+              value: "/etc/ssl/certs/external-ca.pem"
+            {{- end }}
+            {{- end }}
             {{- else }}
             - name: WORDPRESS_DB_HOST
               value: "{{ include "wordpress-tenant.fullname" . }}-mariadb:3306"
@@ -180,6 +222,18 @@ spec:
               mountPath: /var/www/html/wp-content
               subPath: wp-content
             {{- end }}
+            {{- if and .Values.database.ionos.enabled .Values.database.ionos.ssl.enabled .Values.database.ionos.ssl.caCert }}
+            - name: ionos-ca-cert
+              mountPath: /etc/ssl/certs/ionos-ca.pem
+              subPath: ca.pem
+              readOnly: true
+            {{- end }}
+            {{- if and .Values.database.external.enabled .Values.database.external.ssl.enabled .Values.database.external.ssl.caCert }}
+            - name: external-ca-cert
+              mountPath: /etc/ssl/certs/external-ca.pem
+              subPath: ca.pem
+              readOnly: true
+            {{- end }}
       
       volumes:
         - name: wordpress-data
@@ -188,6 +242,22 @@ spec:
         - name: wordpress-persistent-storage
           persistentVolumeClaim:
             claimName: {{ include "wordpress-tenant.fullname" . }}-pvc
+        {{- end }}
+        {{- if and .Values.database.ionos.enabled .Values.database.ionos.ssl.enabled .Values.database.ionos.ssl.caCert }}
+        - name: ionos-ca-cert
+          secret:
+            secretName: {{ include "wordpress-tenant.fullname" . }}-ionos-ca
+            items:
+              - key: ca.pem
+                path: ca.pem
+        {{- end }}
+        {{- if and .Values.database.external.enabled .Values.database.external.ssl.enabled .Values.database.external.ssl.caCert }}
+        - name: external-ca-cert
+          secret:
+            secretName: {{ include "wordpress-tenant.fullname" . }}-external-ca
+            items:
+              - key: ca.pem
+                path: ca.pem
         {{- end }}
       
       {{- with .Values.nodeSelector }}

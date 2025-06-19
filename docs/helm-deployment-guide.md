@@ -18,6 +18,26 @@ The platform consists of three main components:
 2. **WordPress Tenants** - Individual WordPress instances with MCP plugin
 3. **OpenWebUI** - Shared UI for all tenants
 
+### Database Options
+
+Each WordPress tenant can use one of three database configurations:
+
+1. **IONOS Hosted MariaDB** (Recommended for production)
+   - Fully managed database service
+   - Automated backups and maintenance
+   - SSL/TLS encryption
+   - High availability and scalability
+
+2. **External Database** (Custom database servers)
+   - Connect to any MySQL/MariaDB server
+   - Optional SSL/TLS support
+   - Custom connection parameters
+
+3. **Internal MariaDB** (Development/testing)
+   - Kubernetes StatefulSet deployment
+   - Persistent volume storage
+   - Suitable for development environments
+
 ## Quick Start
 
 ### 1. Deploy Shared Services (One-time setup)
@@ -34,14 +54,39 @@ helm install shared-services ./charts/shared-services \
 
 ### 2. Deploy a Tenant
 
+Choose one of the following deployment examples based on your database preference:
+
+#### Option A: IONOS Hosted MariaDB (Production)
+```bash
+# Create tenant namespace
+kubectl create namespace tenant-ionos
+
+# Deploy WordPress with IONOS hosted MariaDB
+helm install tenant-ionos ./charts/wordpress-tenant \
+  --namespace tenant-ionos \
+  -f values/examples/tenant-ionos.yaml
+```
+
+#### Option B: External Database
 ```bash
 # Create tenant namespace
 kubectl create namespace tenant-acme
 
-# Deploy WordPress for tenant
+# Deploy WordPress with external database
 helm install tenant-acme ./charts/wordpress-tenant \
   --namespace tenant-acme \
   -f values/examples/tenant-acme.yaml
+```
+
+#### Option C: Internal MariaDB (Development)
+```bash
+# Create tenant namespace
+kubectl create namespace tenant-dev
+
+# Deploy WordPress with internal MariaDB
+helm install tenant-dev ./charts/wordpress-tenant \
+  --namespace tenant-dev \
+  -f values/examples/tenant-dev.yaml
 ```
 
 ### 3. Deploy OpenWebUI (Shared instance)
@@ -155,6 +200,99 @@ loadBalancer:
         target_port: 80
   loadBalancerIP: "192.168.1.100"
 ```
+
+## Database Configuration
+
+The WordPress tenant chart supports multiple database options:
+
+### IONOS Hosted MariaDB
+
+IONOS Database-as-a-Service provides a fully managed MariaDB solution with automated backups, maintenance, and SSL/TLS encryption.
+
+#### Prerequisites
+1. Create a MariaDB cluster in the IONOS console
+2. Create a database and user for WordPress
+3. Download the SSL CA certificate
+
+#### Configuration
+```yaml
+database:
+  ionos:
+    enabled: true
+    # Database cluster endpoint from IONOS console
+    host: "mariadb-cluster-12345.database.ionos.com"
+    port: 3306
+    name: "wordpress_tenant"
+    user: "wp_user"
+    password: "secure-password-from-ionos"
+    # SSL configuration (required by IONOS)
+    ssl:
+      enabled: true
+      mode: "require"  # Options: require, verify-ca, verify-full
+      # Base64 encoded CA certificate from IONOS
+      caCert: |
+        LS0tLS1CRUdJTiBDRVJUSUZJQ0FURS0tLS0t
+        # IONOS CA certificate content
+        LS0tLS1FTkQgQ0VSVElGSUNBVEUtLS0tLQ==
+    # Connection optimization
+    connection:
+      timeout: 30
+      maxConnections: 20
+      charset: "utf8mb4"
+      collation: "utf8mb4_unicode_ci"
+    # IONOS-specific annotations
+    annotations:
+      ionos.com/database-cluster: "cluster-name"
+      ionos.com/backup-policy: "daily"
+```
+
+### External Database
+
+Connect to any external MySQL/MariaDB server:
+
+```yaml
+database:
+  external:
+    enabled: true
+    host: "external-db.example.com"
+    port: 3306
+    name: "wordpress_db"
+    user: "wp_user"
+    password: "password"
+    # Optional SSL configuration
+    ssl:
+      enabled: true
+      mode: "require"
+      caCert: "base64-encoded-ca-cert"
+```
+
+### Internal MariaDB
+
+Deploy MariaDB as a StatefulSet (development only):
+
+```yaml
+database:
+  internal:
+    enabled: true
+    auth:
+      database: "wordpress"
+      username: "wordpress"
+      password: "generated-password"
+    primary:
+      persistence:
+        enabled: true
+        size: 8Gi
+        storageClass: "standard"
+```
+
+### Database Priority
+
+The chart uses the following priority order:
+1. IONOS hosted MariaDB (if `database.ionos.enabled: true`)
+2. External database (if `database.external.enabled: true`)
+3. Internal MariaDB (if `database.internal.enabled: true`)
+
+Only one database option should be enabled at a time.
 
 ## Security
 

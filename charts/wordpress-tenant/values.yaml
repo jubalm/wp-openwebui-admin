@@ -66,7 +66,40 @@ database:
   # Database type: mariadb or mysql
   type: mariadb
   
-  # External database (if not using subchart)
+  # IONOS hosted MariaDB (managed database service)
+  ionos:
+    enabled: false
+    # IONOS database cluster endpoint
+    host: ""
+    port: 3306
+    # Database name (created in IONOS console)
+    name: ""
+    # Database credentials (from IONOS console)
+    user: ""
+    password: ""
+    # SSL configuration (IONOS requires SSL)
+    ssl:
+      enabled: true
+      # SSL mode: require, verify-ca, verify-full
+      mode: "require"
+      # CA certificate (IONOS provides this)
+      caCert: ""
+    # Connection configuration
+    connection:
+      # Connection timeout in seconds
+      timeout: 30
+      # Max connections per pod
+      maxConnections: 20
+      # Connection charset
+      charset: "utf8mb4"
+      # Connection collation
+      collation: "utf8mb4_unicode_ci"
+    # IONOS-specific annotations for resources
+    annotations:
+      ionos.com/database-cluster: ""
+      ionos.com/backup-policy: "daily"
+  
+  # External database (generic external database)
   external:
     enabled: false
     host: ""
@@ -74,6 +107,11 @@ database:
     name: ""
     user: ""
     password: ""
+    # SSL configuration for external databases
+    ssl:
+      enabled: false
+      mode: "disabled"
+      caCert: ""
   
   # Internal database (subchart)
   internal:

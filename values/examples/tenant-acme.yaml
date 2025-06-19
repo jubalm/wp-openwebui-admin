@@ -47,16 +47,40 @@ wordpress:
       clientId: "wordpress-acme"
       # clientSecret will be generated automatically
 
-# Database configuration - using external database for production
+# Database configuration - using IONOS hosted MariaDB for production
 database:
   type: mariadb
-  external:
+  # IONOS hosted MariaDB (recommended for production)
+  ionos:
     enabled: true
-    host: "mariadb.database.svc.cluster.local"
+    # IONOS database cluster endpoint (from IONOS console)
+    host: "mariadb-cluster-acme.database.ionos.com"
     port: 3306
     name: "wordpress_acme"
     user: "acme_user"
-    password: "secure-database-password"
+    password: "secure-ionos-database-password"
+    # SSL configuration (IONOS requires SSL)
+    ssl:
+      enabled: true
+      mode: "require"
+      # CA certificate from IONOS (base64 encoded)
+      caCert: "LS0tLS1CRUdJTiBDRVJUSUZJQ0FURS0tLS0t...LS0tLS1FTkQgQ0VSVElGSUNBVEUtLS0tLQ=="
+    connection:
+      timeout: 30
+      maxConnections: 25  # Higher for production
+      charset: "utf8mb4"
+      collation: "utf8mb4_unicode_ci"
+    annotations:
+      ionos.com/database-cluster: "acme-production-cluster"
+      ionos.com/backup-policy: "daily"
+  # Alternative: Generic external database
+  external:
+    enabled: false
+    # host: "mariadb.database.svc.cluster.local"
+    # port: 3306
+    # name: "wordpress_acme"
+    # user: "acme_user"
+    # password: "secure-database-password"
   internal:
     enabled: false
 
