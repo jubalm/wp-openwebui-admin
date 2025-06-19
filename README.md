@@ -7,7 +7,7 @@ A proof-of-concept deployment demonstrating modern cloud infrastructure and AI-p
 This PoC explores and aims to demonstrate:
 
 - **IONOS Cloud Capabilities:** Highlighting IONOS Managed Kubernetes orchestration, infrastructure automation, and application hosting for a multi-tenant SaaS offering.
-- **Multi-Tenancy:** Securely hosting multiple tenants (starting with a single tenant for the PoC), each with their own isolated WordPress (with official MCP plugin) and OpenWebUI instances.
+- **Multi-Tenancy:** Securely hosting multiple tenants (starting with a single tenant for the PoC), each with their own isolated WordPress instance (with official MCP plugin) and user accounts in a shared OpenWebUI instance managed via Authentik SSO.
 - **Kubernetes deployment** on IONOS Cloud, leveraging IONOS Managed Kubernetes.
 - **Infrastructure as Code** with Terraform for automated provisioning of all necessary IONOS resources (Kubernetes, networking, storage).
 - **CI/CD automation** with GitHub Actions for streamlining development and deployment processes.
@@ -39,7 +39,7 @@ The project is organized as follows:
 - **Multi-Tenant Architecture:** Implements a comprehensive tenant isolation strategy for securely hosting multiple tenants within the same infrastructure. The strategy uses Kubernetes namespaces with strict security controls for the PoC, with a clear migration path to dedicated clusters for production scaling. Detailed analysis and implementation guidance is provided in the [Tenant Isolation Strategy](docs/kb/tenant-isolation-strategy.md) document.
 - **Automated Infrastructure Provisioning:** Using Terraform to create reusable modules for tenant infrastructure on IONOS.
 - **Automated Application Deployment:** Customizable Helm charts for deploying WordPress (with MCP) and OpenWebUI.
-- **Core Application Stack per Tenant:** Dedicated WordPress (with MCP plugin) and OpenWebUI instances.
+- **Core Application Stack per Tenant:** Dedicated WordPress (with MCP plugin) instances and user accounts in a shared OpenWebUI instance with Authentik SSO integration.
 - **Data Persistence:** Strategy for persistent storage for WordPress and OpenWebUI using IONOS storage solutions.
 - **🎯 PoC Implementation Complete**: Full working integration with CRUD operations validated
 

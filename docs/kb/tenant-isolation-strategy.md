@@ -10,9 +10,9 @@ This document defines the tenant isolation strategy for the multi-tenant WordPre
 
 ### Recommended Strategy
 
-- **PoC Phase:** Kubernetes namespaces with strict NetworkPolicies and RBAC, ensuring tenant users have non-admin roles in OpenWebUI while platform administrators manage OpenWebUI administration. Each tenant will have isolated resources within their namespace.
-- **Production Scaling:** Separate IONOS Managed Kubernetes clusters per tenant group, maintaining the separation of roles between tenant users and administrators, and ensuring scalability and compliance.
-- **Network Layer:** VPC-level isolation for enhanced security in production, with dedicated subnets and firewalls for tenant groups.
+- **PoC Phase:** Kubernetes namespaces with strict NetworkPolicies and RBAC. Each tenant receives a dedicated WordPress instance within their isolated namespace, while sharing a single OpenWebUI instance with tenant-specific user accounts managed through SSO (Authentik). Platform administrators maintain full control over OpenWebUI administration.
+- **Production Scaling:** Separate IONOS Managed Kubernetes clusters per tenant group for WordPress instances, while maintaining a centralized shared OpenWebUI instance with enhanced SSO integration and tenant user management.
+- **Network Layer:** VPC-level isolation for enhanced security in production, with dedicated subnets and firewalls for tenant groups, while ensuring secure connectivity to the shared OpenWebUI instance.
 
 ## 2. Isolation Approaches Analysis
 
@@ -144,21 +144,27 @@ Network-level isolation using separate Virtual Private Clouds or network segment
 # Namespace structure
 tenant-<org-name>:
   - wordpress deployment & service
-  - openwebui user account (non-admin)
   - mysql database
   - persistent volumes
   - secrets and configmaps
   - network policies
   - resource quotas
   - service accounts with RBAC
+
+# Shared infrastructure (single instance)
+shared-services:
+  - openwebui deployment & service
+  - authentik (SSO) deployment & service
+  - tenant user management via SSO
 ```
 
 **Key Components:**
 
-- **Namespace per Tenant:** `tenant-acme`, `tenant-example`, etc.
-- **NetworkPolicies:** Block all inter-namespace traffic by default
-- **Resource Quotas:** Prevent resource exhaustion
-- **RBAC:** Tenant-specific service accounts and roles for WordPress and OpenWebUI user accounts
+- **Namespace per Tenant:** `tenant-acme`, `tenant-example`, etc. for WordPress instances
+- **Shared OpenWebUI:** Single centralized OpenWebUI instance with tenant user management via Authentik SSO
+- **NetworkPolicies:** Block unauthorized inter-namespace traffic while allowing secure access to shared services
+- **Resource Quotas:** Prevent resource exhaustion per tenant namespace
+- **RBAC:** Tenant-specific service accounts and roles for WordPress, integrated with centralized SSO for OpenWebUI access
 - **Pod Security Standards:** Enforce security policies
 - **Ingress Controller:** Route traffic based on hostname/path
 
@@ -172,7 +178,9 @@ tenant-<org-name>:
 
 **Centralized Administration:**
 
-- OpenWebUI administration will be centralized and managed exclusively by platform administrators, ensuring tenant users have non-admin roles.
+- OpenWebUI administration is centralized with a single shared instance managed exclusively by platform administrators
+- Tenant users access the shared OpenWebUI instance via Authentik SSO integration with non-admin roles
+- User management and permissions are handled through Authentik, providing secure tenant isolation at the application level
 
 ### 4.2. Beyond PoC (Hybrid Approach)
 

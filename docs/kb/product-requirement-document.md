@@ -30,15 +30,15 @@ A primary objective of the initial Proof of Concept (PoC) is to **showcase the c
 ### 4.1. Core Application Stack per Tenant
 
 - Each tenant will have a dedicated WordPress instance with the MCP (Model Context Protocol) plugin installed and configured.
-- Each tenant will have a user account in OpenWebUI with non-admin privileges for content management.
+- Each tenant will have a user account in a shared OpenWebUI instance with non-admin privileges for content management.
 - OpenWebUI administration will be managed exclusively by platform administrators, ensuring separation of roles and responsibilities.
-- Each tenant will have a dedicated OpenWebUI instance.
-- OpenWebUI will be configured to integrate with the tenant's WordPress instance via the MCP plugin for content management.
+- All tenants share a single centralized OpenWebUI instance with secure user isolation via Authentik SSO integration.
+- The shared OpenWebUI will be configured to integrate with each tenant's WordPress instance via the MCP plugin for content management.
 
 ### 4.2. Tenant Isolation
 
 - **Strategy:** Implement a robust tenant isolation strategy following the comprehensive analysis and recommendations outlined in the [Tenant Isolation Strategy document](tenant-isolation-strategy.md). The chosen approach uses Kubernetes namespaces with strict NetworkPolicies and RBAC for the PoC, with a clear migration path to dedicated clusters for production scaling.
-- **Data Isolation:** Ensure data (WordPress database, file uploads, OpenWebUI configurations, logs) is strictly isolated between tenants, while OpenWebUI remains a centralized instance managed by platform administrators.
+- **Data Isolation:** Ensure data (WordPress database, file uploads, logs) is strictly isolated between tenants, while OpenWebUI remains a centralized shared instance managed by platform administrators with tenant user separation via Authentik SSO.
 - **Implementation Details:** See the [Tenant Isolation Strategy](tenant-isolation-strategy.md) for detailed implementation guidance, security considerations, and operational procedures.
 
 ### 4.3. Automated Infrastructure Provisioning
