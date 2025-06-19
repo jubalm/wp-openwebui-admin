@@ -128,13 +128,6 @@ wp-openwebui-admin/
 │           └── docs/              # Plugin documentation
 ├── openwebui/
 │   └── config/                    # OpenWebUI configuration
-├── helm/                          # Kubernetes deployment charts
-│   ├── wordpress-mcp/
-│   │   ├── Chart.yaml
-│   │   └── values.yaml
-│   └── openwebui/
-│       ├── Chart.yaml
-│       └── values.yaml
 └── docs/
     ├── setup-guide.md             # Updated with MCP configuration
     └── poc-report.md              # This report

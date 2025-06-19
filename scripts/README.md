@@ -1,25 +1,11 @@
 # Scripts Directory
 
-This directory contains helper scripts for the WordPress and OpenWebUI Integration PoC using the official WordPress MCP plugin.
+This directory contains simplified helper scripts for the WordPress and OpenWebUI Integration PoC.
 
 ## Available Scripts
 
-### `build-wordpress.sh`
-**Purpose**: Builds the custom WordPress Docker image with pre-installed plugins
-
-**Usage**:
-```bash
-./scripts/build-wordpress.sh [tag]
-```
-
-**What it does**:
-- Builds a custom WordPress Docker image with WordPress MCP and OpenID Connect plugins pre-installed
-- Includes automated setup scripts to bypass manual configuration
-- Creates a production-ready WordPress image with SSO integration
-- Supports CI/CD deployment and scalable instance creation
-
 ### `setup.sh`
-**Purpose**: Automated setup of the entire PoC environment with official WordPress MCP plugin
+**Purpose**: Complete automated setup of the PoC environment
 
 **Usage**:
 ```bash
@@ -28,62 +14,39 @@ This directory contains helper scripts for the WordPress and OpenWebUI Integrati
 
 **What it does**:
 - Checks for Docker and Docker Compose
-- Validates WordPress MCP plugin installation
-- Creates necessary directories
-- Starts Docker containers
+- Builds custom WordPress image with pre-installed plugins
+- Starts all Docker services (WordPress, OpenWebUI, MariaDB, Authentik)
 - Waits for services to be ready
-- Provides setup instructions for WordPress MCP configuration
+- Provides access URLs and credentials
 
-### `test-integration.sh`
-**Purpose**: Tests the WordPress MCP integration using WordPress REST API and MCP endpoints
-
-**Usage**:
-```bash
-./scripts/test-integration.sh
-```
-
-**What it does**:
-- Tests WordPress REST API connectivity
-- Tests WordPress post CRUD operations using automated admin credentials
-- Validates MCP endpoint accessibility
-- Creates, reads, updates, and deletes test posts
-- Reports comprehensive test results
-
-**Prerequisites**: 
-- WordPress fully automated setup (no manual configuration needed)
-- Uses default admin credentials from docker-compose environment
-
-### `test-sso.sh`
-**Purpose**: Validates SSO integration with Authentik for WordPress and OpenWebUI
+### `test.sh`
+**Purpose**: Comprehensive testing of all PoC components
 
 **Usage**:
 ```bash
-./scripts/test-sso.sh
+./scripts/test.sh
 ```
 
 **What it does**:
-- Tests Authentik server availability with file-based logging
-- Validates OAuth endpoints
-- Checks WordPress and OpenWebUI accessibility
-- Reports SSO environment status
-- Saves debug logs to `/tmp/sso-test-logs/` for troubleshooting
-- Provides manual configuration guidance
+- Tests WordPress accessibility and REST API
+- Validates WordPress CRUD operations (create, read, update, delete posts)
+- Tests OpenWebUI accessibility  
+- Checks Authentik SSO functionality (if enabled)
+- Provides health summary for all services
+- Saves detailed logs to `/tmp/poc-test-logs/` for troubleshooting
 
-### `test-authentik.sh`
-**Purpose**: Comprehensive Authentik container health and functionality test
+### `build-wordpress.sh`
+**Purpose**: Builds the custom WordPress Docker image
 
 **Usage**:
 ```bash
-./scripts/test-authentik.sh
+./scripts/build-wordpress.sh [tag]
 ```
 
 **What it does**:
-- Checks Docker container status and health
-- Tests Authentik UI accessibility at http://localhost:9000
-- Validates admin interface and OAuth endpoints
-- Tests inter-container network connectivity
-- Saves detailed logs to `/tmp/authentik-logs/` for debugging
-- Provides troubleshooting information
+- Builds custom WordPress image with WordPress MCP and OpenID Connect plugins
+- Includes automated setup scripts to bypass manual configuration
+- Creates production-ready WordPress image for scalable deployment
 
 ### `cleanup.sh`
 **Purpose**: Cleans up the PoC environment
@@ -97,57 +60,50 @@ This directory contains helper scripts for the WordPress and OpenWebUI Integrati
 - Stops all Docker containers
 - Optionally removes volumes and data
 - Optionally removes unused Docker images
-- Cleans up temporary files
+- Cleans up temporary files and logs
 
-## Usage Order
+## Quick Start
 
-1. **Build Custom Image**: `./scripts/build-wordpress.sh` (optional, docker-compose will build automatically)
-2. **Initial Setup**: `./scripts/setup.sh`
-3. **Test Integration**: `./scripts/test-integration.sh`
-4. **Test SSO**: `./scripts/test-sso.sh`
-5. **Test Authentik**: `./scripts/test-authentik.sh` (if Authentik issues)
-6. **Cleanup**: `./scripts/cleanup.sh` (when done)
+1. **Setup**: `./scripts/setup.sh`
+2. **Test**: `./scripts/test.sh`
+3. **Cleanup**: `./scripts/cleanup.sh` (when done)
+
+## Access Points
+
+After running setup:
+- **WordPress**: http://localhost:8080 (admin/admin123)
+- **OpenWebUI**: http://localhost:3000
+- **Authentik**: http://localhost:9000 (admin/admin)
 
 ## Prerequisites
 
 - Docker and Docker Compose installed
 - Bash shell
-- curl (for testing scripts)
-- Executable permissions set on scripts
+- curl (for testing)
 
-## Setting Permissions
+## Troubleshooting
 
-If scripts are not executable:
+### Make Scripts Executable
 ```bash
 chmod +x scripts/*.sh
 ```
 
-## Troubleshooting
-
-### Script Permission Denied
+### View Service Status
 ```bash
-chmod +x scripts/script-name.sh
+docker compose ps
 ```
 
-### Docker Not Found
-Install Docker and Docker Compose first:
-- [Docker Installation](https://docs.docker.com/get-docker/)
-- [Docker Compose Installation](https://docs.docker.com/compose/install/)
-
-### Services Not Starting
-Check Docker logs:
+### View Service Logs
 ```bash
-docker-compose logs
+docker compose logs [service-name]
 ```
 
-### API Tests Failing
-Ensure:
-1. WordPress is accessible at http://localhost:8080
-2. MCP plugin is activated in WordPress admin
-3. WordPress permalinks are set to "Post name"
+### Test Results
+All test logs are saved to `/tmp/poc-test-logs/` for detailed troubleshooting.
 
 ## Support
 
 Refer to the main documentation:
 - [Setup Guide](../docs/setup-guide.md)
+- [Automated SSO Guide](../docs/automated-sso-guide.md)
 - [PoC Report](../docs/poc-report.md)

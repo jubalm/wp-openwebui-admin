@@ -20,17 +20,17 @@ The project is organized as follows:
 
 ```
 .
-├── .github/              # GitHub Actions workflows for CI/CD
-├── docs/                 # Project documentation
-│   ├── kb/               # Knowledgebase, learnings, external resources, tooling
-├── iac/                  # Infrastructure as Code
-│   └── terraform/        # Terraform modules and configurations for IONOS
-│       ├── modules/      # Reusable Terraform modules (e.g., for tenant infra)
-│       └── environments/ # Environment-specific configurations (e.g., poc)
-├── helm/                 # Helm charts for applications
-│   ├── wordpress-mcp/    # Helm chart for WordPress + MCP Plugin
-│   └── openwebui/        # Helm chart for OpenWebUI
-├── scripts/              # Helper scripts for automation, deployment, etc.
+├── docker/               # Docker configurations and custom images
+│   └── wordpress/        # Custom WordPress Docker image with automation
+├── docs/                 # Project documentation and guides
+│   ├── kb/               # Knowledgebase, learnings, external resources
+├── scripts/              # Simplified automation scripts
+│   ├── setup.sh          # Complete PoC setup
+│   ├── test.sh           # Comprehensive testing
+│   ├── build-wordpress.sh # Custom WordPress image builder
+│   └── cleanup.sh        # Environment cleanup
+├── docker-compose.yml    # Multi-service orchestration
+├── .env.example          # Environment configuration template
 └── README.md             # This file
 ```
 
@@ -38,8 +38,8 @@ The project is organized as follows:
 
 - **IONOS Secure Cloud Management:** Demonstrates IONOS Managed Kubernetes, networking (LoadBalancer for IP exposure), and storage solutions with a focus on security and scalability.
 - **Multi-Tenant Architecture:** Implements a strategy for securely hosting multiple tenants within the same infrastructure. Each tenant is isolated using Kubernetes namespaces, ensuring data security and resource efficiency. This architecture supports scalability and allows for efficient utilization of cloud resources.
-- **Automated Infrastructure Provisioning:** Using Terraform to create reusable modules for tenant infrastructure on IONOS.
-- **Automated Application Deployment:** Customizable Helm charts for deploying WordPress (with MCP) and OpenWebUI.
+- **Automated Infrastructure Provisioning:** Ready for Terraform-based infrastructure automation on IONOS.
+- **Containerized Deployment:** Complete Docker-based solution with production-ready orchestration.
 - **Core Application Stack per Tenant:** Dedicated WordPress (with official MCP plugin) and OpenWebUI instances.
 - **Data Persistence:** Strategy for persistent storage for WordPress and OpenWebUI using IONOS storage solutions.
 - **🎯 PoC Implementation Complete**: Full working integration with CRUD operations validated
@@ -52,7 +52,7 @@ The project is organized as follows:
 - ✅ **OpenWebUI Integration**: Ready for AI-powered content management
 - ✅ **CRUD Operations**: Full WordPress content management via MCP tools
 - ✅ **Docker Orchestration**: Complete containerized environment
-- ✅ **Kubernetes Ready**: Helm charts for production deployment
+- ✅ **Production Ready**: Scalable deployment architecture
 - ✅ **MariaDB Compatibility**: Optimized for IONOS Cloud deployment
 - ✅ **Single Sign-On (SSO)**: Authentik-based authentication for unified user management
 - ✅ **OpenID Connect Integration**: Secure OAuth2/OIDC authentication for WordPress and OpenWebUI
@@ -85,8 +85,7 @@ The project is organized as follows:
 
 4. **Test the Integration:**
    ```bash
-   ./scripts/test-integration.sh  # Test WordPress MCP integration
-   ./scripts/test-sso.sh         # Validate SSO configuration
+   ./scripts/test.sh  # Comprehensive testing of all components
    ```
 
 5. **Access Services:**
@@ -96,8 +95,8 @@ The project is organized as follows:
 
 6. **Configure SSO (Optional):**
    ```bash
-   # Follow the detailed SSO setup guide
-   open docs/sso-setup-guide.md
+   # Follow the automated SSO setup guide
+   open docs/automated-sso-guide.md
    ```
 
 ### Prerequisites
@@ -109,7 +108,7 @@ The project is organized as follows:
 ## 📚 Documentation
 
 - **[Setup Guide](docs/setup-guide.md)**: Comprehensive installation and configuration guide
-- **[SSO Setup Guide](docs/sso-setup-guide.md)**: Complete Single Sign-On configuration with Authentik
+- **[Automated SSO Guide](docs/automated-sso-guide.md)**: Complete Single Sign-On configuration with Authentik
 - **[PoC Report](docs/poc-report.md)**: Complete proof of concept implementation report
 - **[Scripts Documentation](scripts/README.md)**: Helper scripts usage guide
 
@@ -128,8 +127,7 @@ All acceptance criteria have been successfully implemented and validated:
 ```bash
 # Run the complete PoC setup and test
 ./scripts/setup.sh
-./scripts/test-integration.sh
-./scripts/test-sso.sh
+./scripts/test.sh
 ```
 
 ## 🔧 API Integration

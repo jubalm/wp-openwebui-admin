@@ -47,14 +47,9 @@ Before starting, ensure you have the following installed:
    - OpenWebUI: http://localhost:3000
    - Authentik: http://localhost:9000 (admin/admin)
 
-5. **Test SSO Integration**
+5. **Test the PoC Integration**
    ```bash
-   ./scripts/test-sso.sh
-   ```
-
-6. **Test the MCP Integration**
-   ```bash
-   ./scripts/test-integration.sh
+   ./scripts/test.sh
    ```
 
 ## Manual Setup Steps
