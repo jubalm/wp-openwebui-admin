@@ -58,7 +58,7 @@ Before starting, ensure you have the following installed:
 
 1. **Start Services**
    ```bash
-   docker-compose up -d
+   docker compose up -d
    ```
 
 2. **Access WordPress**
@@ -205,25 +205,11 @@ cp .env.example .env
 nano .env
 ```
 
-### Available Variables
+### Environment Variables
 
-| Variable | Default | Description |
-|----------|---------|-------------|
-| `MARIADB_DATABASE` | `wordpress` | WordPress database name |
-| `MARIADB_USER` | `wordpress` | MariaDB user for WordPress |
-| `MARIADB_PASSWORD` | `wordpress_password` | MariaDB password for WordPress |
-| `MARIADB_ROOT_PASSWORD` | `root_password` | MariaDB root password |
-| `AUTHENTIK_DB_USER` | `authentik` | PostgreSQL user for Authentik |
-| `AUTHENTIK_DB_NAME` | `authentik` | PostgreSQL database for Authentik |
-| `AUTHENTIK_DB_PASSWORD` | `authentik_password` | PostgreSQL password for Authentik |
-| `WORDPRESS_PORT` | `8080` | WordPress HTTP port |
-| `OPENWEBUI_PORT` | `3000` | OpenWebUI HTTP port |
-| `MYSQL_PORT` | `3306` | MariaDB port |
-| `POSTGRES_PORT` | `5432` | PostgreSQL port |
-| `AUTHENTIK_PORT` | `9000` | Authentik HTTP port |
-| `WORDPRESS_CONFIG_EXTRA` | `define('WP_ENVIRONMENT_TYPE', 'local');` | Extra WordPress configuration |
+All environment variables are documented in the `.env.example` file with their descriptions and default values.
 
-### WordPress Site Configuration (SITE_* variables)
+### WordPress Custom Image Configuration
 
 The WordPress Docker image supports fully automated installation using the following environment variables:
 
@@ -282,10 +268,10 @@ The WordPress Docker image supports fully automated installation using the follo
 1. **WordPress Not Accessible**
    ```bash
    # Check if containers are running
-   docker-compose ps
+   docker compose ps
    
    # Check WordPress logs
-   docker-compose logs wordpress
+   docker compose logs wordpress
    ```
 
 2. **MCP Plugin Not Working**
@@ -300,16 +286,16 @@ The WordPress Docker image supports fully automated installation using the follo
 3. **Database Connection Issues**
    ```bash
    # Check MariaDB logs (WordPress)
-   docker-compose logs mysql
+   docker compose logs mysql
    
    # Check PostgreSQL logs (Authentik)
-   docker-compose logs postgres
+   docker compose logs postgres
    
    # Test MariaDB connection
-   docker-compose exec mysql mariadb -u wordpress -p wordpress
+   docker compose exec mysql mariadb -u wordpress -p wordpress
    
    # Test PostgreSQL connection
-   docker-compose exec postgres psql -U authentik -d authentik
+   docker compose exec postgres psql -U authentik -d authentik
    ```
 
 ### MCP Integration Issues
@@ -333,10 +319,10 @@ The WordPress Docker image supports fully automated installation using the follo
 1. **OpenWebUI Not Starting**
    ```bash
    # Check OpenWebUI logs
-   docker-compose logs openwebui
+   docker compose logs openwebui
    
    # Restart OpenWebUI
-   docker-compose restart openwebui
+   docker compose restart openwebui
    ```
 
 ## Security Considerations
@@ -352,30 +338,6 @@ The WordPress Docker image supports fully automated installation using the follo
 - Add input validation and sanitization
 - Use environment variables for sensitive data
 - Enable WordPress security features
-
-## Next Steps
-
-1. **Complete WordPress Setup**: Finish WordPress installation and activate the MCP plugin
-2. **Configure MCP Settings**: Enable MCP functionality and generate authentication tokens
-3. **Test Integration**: Run the test script to verify MCP functionality
-4. **OpenWebUI Integration**: Configure OpenWebUI to connect to WordPress MCP endpoints
-5. **Custom Workflows**: Implement AI-powered content creation workflows
-6. **Production Deployment**: Plan for Kubernetes deployment with proper security
-
-## Additional Resources
-
-- [WordPress MCP Plugin Documentation](https://github.com/Automattic/wordpress-mcp)
-- [MCP WordPress Remote Client](https://github.com/Automattic/mcp-wordpress-remote)
-- [Model Context Protocol Specification](https://modelcontextprotocol.io/)
-- [WordPress REST API Documentation](https://developer.wordpress.org/rest-api/)
-
-## Support
-
-For issues and questions:
-1. Check the troubleshooting section above
-2. Review Docker logs for error messages
-3. Test individual components separately
-4. Refer to the official WordPress MCP plugin documentation
 
 ## License
 

@@ -35,19 +35,6 @@ This directory contains simplified helper scripts for the WordPress and OpenWebU
 - Provides health summary for all services
 - Saves detailed logs to `/tmp/poc-test-logs/` for troubleshooting
 
-### `build-wordpress.sh`
-**Purpose**: Builds the custom WordPress Docker image
-
-**Usage**:
-```bash
-./scripts/build-wordpress.sh [tag]
-```
-
-**What it does**:
-- Builds custom WordPress image with WordPress MCP and OpenID Connect plugins
-- Includes automated setup scripts to bypass manual configuration
-- Creates production-ready WordPress image for scalable deployment
-
 ### `cleanup.sh`
 **Purpose**: Cleans up the PoC environment
 
@@ -98,12 +85,5 @@ docker compose ps
 docker compose logs [service-name]
 ```
 
-### Test Results
+## Test Results
 All test logs are saved to `/tmp/poc-test-logs/` for detailed troubleshooting.
-
-## Support
-
-Refer to the main documentation:
-- [Setup Guide](../docs/setup-guide.md)
-- [Automated SSO Guide](../docs/automated-sso-guide.md)
-- [PoC Report](../docs/poc-report.md)

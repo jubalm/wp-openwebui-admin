@@ -27,7 +27,6 @@ The project is organized as follows:
 ├── scripts/              # Simplified automation scripts
 │   ├── setup.sh          # Complete PoC setup
 │   ├── test.sh           # Comprehensive testing
-│   ├── build-wordpress.sh # Custom WordPress image builder
 │   └── cleanup.sh        # Environment cleanup
 ├── docker-compose.yml    # Multi-service orchestration
 ├── .env.example          # Environment configuration template
@@ -48,11 +47,8 @@ The project is organized as follows:
 
 - ✅ **WordPress Deployment**: Local WordPress instance with MariaDB database
 - ✅ **Official WordPress MCP Plugin**: Automattic's official MCP plugin with standardized protocol
-- ✅ **MCP Protocol Implementation**: Dual transport protocols (STDIO & Streamable) with JWT authentication
-- ✅ **OpenWebUI Integration**: Ready for AI-powered content management
-- ✅ **CRUD Operations**: Full WordPress content management via MCP tools
+- ✅ **OpenWebUI Integration**: https://github.com/open-webui/open-webui
 - ✅ **Docker Orchestration**: Complete containerized environment
-- ✅ **Production Ready**: Scalable deployment architecture
 - ✅ **MariaDB Compatibility**: Optimized for IONOS Cloud deployment
 - ✅ **Single Sign-On (SSO)**: Authentik-based authentication for unified user management
 - ✅ **OpenID Connect Integration**: Secure OAuth2/OIDC authentication for WordPress and OpenWebUI
@@ -93,12 +89,6 @@ The project is organized as follows:
    - **OpenWebUI**: http://localhost:3000
    - **Authentik (SSO)**: http://localhost:9000
 
-6. **Configure SSO (Optional):**
-   ```bash
-   # Follow the automated SSO setup guide
-   open docs/automated-sso-guide.md
-   ```
-
 ### Prerequisites
 
 - **Docker & Docker Compose**: [Installation Guide](https://docs.docker.com/get-docker/)
@@ -109,40 +99,7 @@ The project is organized as follows:
 
 - **[Setup Guide](docs/setup-guide.md)**: Comprehensive installation and configuration guide
 - **[Automated SSO Guide](docs/automated-sso-guide.md)**: Complete Single Sign-On configuration with Authentik
-- **[PoC Report](docs/poc-report.md)**: Complete proof of concept implementation report
 - **[Scripts Documentation](scripts/README.md)**: Helper scripts usage guide
-
-## 🧪 PoC Status: COMPLETE ✅
-
-All acceptance criteria have been successfully implemented and validated:
-
-1. ✅ **WordPress Local Deployment**: Running on http://localhost:8080
-2. ✅ **MCP Plugin**: Custom integration plugin with REST API
-3. ✅ **OpenWebUI Deployment**: Running on http://localhost:3000
-4. ✅ **Integration Configuration**: WordPress-OpenWebUI communication established
-5. ✅ **CRUD Operations**: All operations validated with automated tests
-6. ✅ **Documentation**: Complete setup, usage, and troubleshooting guides
-
-### Quick Validation
-```bash
-# Run the complete PoC setup and test
-./scripts/setup.sh
-./scripts/test.sh
-```
-
-## 🔧 API Integration
-
-The MCP plugin provides REST API endpoints for WordPress-OpenWebUI integration:
-
-| Endpoint | Method | Purpose |
-|----------|--------|---------|
-| `/mcp/v1/status` | GET | Plugin status |
-| `/mcp/v1/posts` | GET | Retrieve posts |
-| `/mcp/v1/posts` | POST | Create post |
-| `/mcp/v1/posts/{id}` | PUT | Update post |
-| `/mcp/v1/posts/{id}` | DELETE | Delete post |
-
-**Authentication**: API Key (`X-API-Key: demo-api-key-poc`)
 
 ## Contributing
 
