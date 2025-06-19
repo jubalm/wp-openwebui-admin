@@ -13,7 +13,7 @@ mkdir -p /tmp/sso-test-logs
 
 # Test 1: Check Authentik availability
 echo "1️⃣ Testing Authentik server availability..."
-authentik_response=$(curl -s -w "%{http_code}" http://localhost:9000 -o /tmp/sso-test-logs/authentik-response.txt 2>&1 || echo "failed")
+authentik_response=$(curl -s -L -w "%{http_code}" http://localhost:9000 -o /tmp/sso-test-logs/authentik-response.txt 2>&1 || echo "failed")
 if [ "$authentik_response" = "failed" ] || [ "$authentik_response" != "200" ]; then
     echo "❌ Authentik server not accessible at http://localhost:9000"
     echo "   Make sure Authentik is running: docker compose ps authentik-server"
@@ -39,7 +39,7 @@ fi
 # Test 3: Check WordPress availability
 echo ""
 echo "3️⃣ Testing WordPress availability..."
-wp_response=$(curl -s -w "%{http_code}" http://localhost:8080 -o /tmp/sso-test-logs/wordpress-response.txt 2>&1 || echo "failed")
+wp_response=$(curl -s -L -w "%{http_code}" http://localhost:8080 -o /tmp/sso-test-logs/wordpress-response.txt 2>&1 || echo "failed")
 if [ "$wp_response" = "failed" ] || [ "$wp_response" != "200" ]; then
     echo "❌ WordPress not accessible at http://localhost:8080"
     echo "Error details saved to /tmp/sso-test-logs/wordpress-response.txt"
@@ -51,7 +51,7 @@ fi
 # Test 4: Check OpenWebUI availability
 echo ""
 echo "4️⃣ Testing OpenWebUI availability..."
-owui_response=$(curl -s -w "%{http_code}" http://localhost:3000 -o /tmp/sso-test-logs/openwebui-response.txt 2>&1 || echo "failed")
+owui_response=$(curl -s -L -w "%{http_code}" http://localhost:3000 -o /tmp/sso-test-logs/openwebui-response.txt 2>&1 || echo "failed")
 if [ "$owui_response" = "failed" ] || [ "$owui_response" != "200" ]; then
     echo "❌ OpenWebUI not accessible at http://localhost:3000"
     echo "Error details saved to /tmp/sso-test-logs/openwebui-response.txt"
@@ -65,7 +65,7 @@ echo ""
 echo "5️⃣ Testing Authentik OAuth endpoints..."
 
 # Test authorization endpoint
-auth_endpoint=$(curl -s -w "%{http_code}" http://localhost:9000/application/o/authorize/ -o /tmp/sso-test-logs/oauth-auth.txt 2>&1 || echo "failed")
+auth_endpoint=$(curl -s -L -w "%{http_code}" http://localhost:9000/application/o/authorize/ -o /tmp/sso-test-logs/oauth-auth.txt 2>&1 || echo "failed")
 if [ "$auth_endpoint" = "failed" ]; then
     echo "⚠️  OAuth authorization endpoint not accessible (may require parameters)"
 else
@@ -73,7 +73,7 @@ else
 fi
 
 # Test token endpoint
-token_endpoint=$(curl -s -w "%{http_code}" http://localhost:9000/application/o/token/ -o /tmp/sso-test-logs/oauth-token.txt 2>&1 || echo "failed")
+token_endpoint=$(curl -s -L -w "%{http_code}" http://localhost:9000/application/o/token/ -o /tmp/sso-test-logs/oauth-token.txt 2>&1 || echo "failed")
 if [ "$token_endpoint" = "failed" ]; then
     echo "⚠️  OAuth token endpoint not accessible (may require parameters)"
 else
@@ -81,7 +81,7 @@ else
 fi
 
 # Test userinfo endpoint
-userinfo_endpoint=$(curl -s -w "%{http_code}" http://localhost:9000/application/o/userinfo/ -o /tmp/sso-test-logs/oauth-userinfo.txt 2>&1 || echo "failed")
+userinfo_endpoint=$(curl -s -L -w "%{http_code}" http://localhost:9000/application/o/userinfo/ -o /tmp/sso-test-logs/oauth-userinfo.txt 2>&1 || echo "failed")
 if [ "$userinfo_endpoint" = "failed" ]; then
     echo "⚠️  OAuth userinfo endpoint not accessible (may require authentication)"
 else
@@ -91,7 +91,7 @@ fi
 # Test 6: Check if WordPress has OpenID Connect plugin ready
 echo ""
 echo "6️⃣ Checking WordPress OpenID Connect plugin readiness..."
-wp_plugins_check=$(curl -s http://localhost:8080/wp-admin/plugins.php -o /tmp/sso-test-logs/wp-plugins.txt 2>&1 || echo "failed")
+wp_plugins_check=$(curl -s -L http://localhost:8080/wp-admin/plugins.php -o /tmp/sso-test-logs/wp-plugins.txt 2>&1 || echo "failed")
 if [ "$wp_plugins_check" = "failed" ]; then
     echo "⚠️  Cannot check WordPress plugins page (authentication required)"
     echo "   Plugin should be pre-installed in custom WordPress image"
