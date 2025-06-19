@@ -1,0 +1,30 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "wordpress-tenant.fullname" . }}
+  labels:
+    {{- include "wordpress-tenant.labels" . | nindent 4 }}
+    app.kubernetes.io/component: wordpress
+  {{- if .Values.loadBalancer.enabled }}
+  annotations:
+    {{- with .Values.loadBalancer.annotations }}
+    {{- toYaml . | nindent 4 }}
+    {{- end }}
+  {{- end }}
+spec:
+  {{- if .Values.loadBalancer.enabled }}
+  type: LoadBalancer
+  {{- if .Values.loadBalancer.loadBalancerIP }}
+  loadBalancerIP: {{ .Values.loadBalancer.loadBalancerIP }}
+  {{- end }}
+  {{- else }}
+  type: {{ .Values.service.type }}
+  {{- end }}
+  ports:
+    - port: {{ .Values.service.port }}
+      targetPort: http
+      protocol: TCP
+      name: http
+  selector:
+    {{- include "wordpress-tenant.selectorLabels" . | nindent 4 }}
+    app.kubernetes.io/component: wordpress

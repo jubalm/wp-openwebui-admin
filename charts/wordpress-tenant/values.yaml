@@ -1,0 +1,255 @@
+# Default values for wordpress-tenant chart
+# This is a YAML-formatted file.
+# Declare variables to be passed into your templates.
+
+# Global settings
+global:
+  # Tenant identifier (used for naming resources)
+  tenant: "example"
+  # Shared services namespace
+  sharedServicesNamespace: "shared-services"
+
+# WordPress configuration
+wordpress:
+  # Container image configuration
+  image:
+    repository: custom-wordpress
+    tag: latest
+    pullPolicy: IfNotPresent
+  
+  # Resource requirements
+  resources:
+    limits:
+      cpu: 500m
+      memory: 512Mi
+    requests:
+      cpu: 250m
+      memory: 256Mi
+  
+  # Replica count
+  replicaCount: 1
+  
+  # Site configuration
+  site:
+    url: "http://wordpress-example.local"
+    title: "WordPress MCP Integration"
+    adminUser: "admin"
+    adminEmail: "admin@example.com"
+    # adminPassword will be generated if not provided
+    adminPassword: ""
+  
+  # WordPress specific settings
+  config:
+    debug: false
+    tablePrefix: "wp_"
+    language: "en_US"
+    timezone: "UTC"
+    environment: "production"
+  
+  # MCP Plugin configuration
+  mcp:
+    enabled: true
+    apiKey: ""  # Generated if empty
+  
+  # Authentication configuration
+  auth:
+    # WordPress security keys (generated if not provided)
+    keys: {}
+    # OAuth/SSO integration
+    oauth:
+      enabled: true
+      clientId: ""
+      clientSecret: ""
+
+# Database configuration
+database:
+  # Database type: mariadb or mysql
+  type: mariadb
+  
+  # IONOS hosted MariaDB (managed database service)
+  ionos:
+    enabled: false
+    # IONOS database cluster endpoint
+    host: ""
+    port: 3306
+    # Database name (created in IONOS console)
+    name: ""
+    # Database credentials (from IONOS console)
+    user: ""
+    password: ""
+    # SSL configuration (IONOS requires SSL)
+    ssl:
+      enabled: true
+      # SSL mode: require, verify-ca, verify-full
+      mode: "require"
+      # CA certificate (IONOS provides this)
+      caCert: ""
+    # Connection configuration
+    connection:
+      # Connection timeout in seconds
+      timeout: 30
+      # Max connections per pod
+      maxConnections: 20
+      # Connection charset
+      charset: "utf8mb4"
+      # Connection collation
+      collation: "utf8mb4_unicode_ci"
+    # IONOS-specific annotations for resources
+    annotations:
+      ionos.com/database-cluster: ""
+      ionos.com/backup-policy: "daily"
+  
+  # External database (generic external database)
+  external:
+    enabled: false
+    host: ""
+    port: 3306
+    name: ""
+    user: ""
+    password: ""
+    # SSL configuration for external databases
+    ssl:
+      enabled: false
+      mode: "disabled"
+      caCert: ""
+  
+  # Internal database (subchart)
+  internal:
+    enabled: true
+    # MariaDB subchart values
+    auth:
+      rootPassword: ""
+      database: "wordpress"
+      username: "wordpress"
+      password: ""
+    
+    # Persistence
+    primary:
+      persistence:
+        enabled: true
+        size: 8Gi
+        storageClass: ""
+    
+    # Resource requirements
+    resources:
+      limits:
+        cpu: 250m
+        memory: 256Mi
+      requests:
+        cpu: 100m
+        memory: 128Mi
+
+# Persistence configuration
+persistence:
+  # WordPress files persistence
+  enabled: true
+  storageClass: ""
+  accessMode: ReadWriteOnce
+  size: 10Gi
+  # Mount path
+  mountPath: /var/www/html
+
+# Service configuration
+service:
+  type: ClusterIP
+  port: 80
+  targetPort: 80
+
+# Ingress configuration
+ingress:
+  enabled: false
+  className: ""
+  annotations: {}
+    # kubernetes.io/ingress.class: nginx
+    # kubernetes.io/tls-acme: "true"
+    # cert-manager.io/cluster-issuer: letsencrypt
+  hosts:
+    - host: wordpress-example.local
+      paths:
+        - path: /
+          pathType: Prefix
+  tls: []
+  #  - secretName: wordpress-example-tls
+  #    hosts:
+  #      - wordpress-example.local
+
+# Load Balancer configuration (IONOS specific)
+loadBalancer:
+  enabled: false
+  # IONOS LoadBalancer annotations
+  annotations:
+    service.beta.kubernetes.io/ionos-loadbalancer-forwarding-rules: ""
+  # Static IP configuration
+  loadBalancerIP: ""
+
+# Security Context
+securityContext:
+  runAsNonRoot: false
+  runAsUser: 33  # www-data
+  runAsGroup: 33
+  fsGroup: 33
+
+podSecurityContext:
+  fsGroup: 33
+
+# Autoscaling
+autoscaling:
+  enabled: false
+  minReplicas: 1
+  maxReplicas: 5
+  targetCPUUtilizationPercentage: 80
+  targetMemoryUtilizationPercentage: 80
+
+# Node selector and tolerations
+nodeSelector: {}
+tolerations: []
+affinity: {}
+
+# Service Account
+serviceAccount:
+  # Specifies whether a service account should be created
+  create: true
+  # Annotations to add to the service account
+  annotations: {}
+  # The name of the service account to use.
+  # If not set and create is true, a name is generated using the fullname template
+  name: ""
+
+# RBAC configuration
+rbac:
+  # Create RBAC resources
+  create: true
+
+# Network Policies
+networkPolicy:
+  # Enable network policies
+  enabled: true
+  # Allow ingress from shared services namespace
+  allowFromSharedServices: true
+  # Additional ingress rules
+  ingress: []
+  # Additional egress rules  
+  egress: []
+
+# Monitoring and observability
+monitoring:
+  # Enable ServiceMonitor for Prometheus
+  serviceMonitor:
+    enabled: false
+    interval: 30s
+    path: /wp-admin/admin-ajax.php
+  
+  # Pod annotations for monitoring
+  podAnnotations: {}
+
+# Backup configuration
+backup:
+  enabled: false
+  # Backup schedule (cron format)
+  schedule: "0 2 * * *"
+  # Retention policy
+  retention: "7d"
+  # Storage for backups
+  storage:
+    size: 20Gi
+    storageClass: ""

@@ -1,0 +1,140 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "openwebui.fullname" . }}
+  labels:
+    {{- include "openwebui.labels" . | nindent 4 }}
+spec:
+  {{- if not .Values.autoscaling.enabled }}
+  replicas: {{ .Values.openwebui.replicaCount }}
+  {{- end }}
+  selector:
+    matchLabels:
+      {{- include "openwebui.selectorLabels" . | nindent 6 }}
+  template:
+    metadata:
+      annotations:
+        checksum/config: {{ include (print $.Template.BasePath "/configmap.yaml") . | sha256sum }}
+        checksum/secret: {{ include (print $.Template.BasePath "/secret.yaml") . | sha256sum }}
+        {{- with .Values.monitoring.podAnnotations }}
+        {{- toYaml . | nindent 8 }}
+        {{- end }}
+      labels:
+        {{- include "openwebui.labels" . | nindent 8 }}
+    spec:
+      {{- with .Values.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      serviceAccountName: {{ include "openwebui.serviceAccountName" . }}
+      securityContext:
+        {{- toYaml .Values.podSecurityContext | nindent 8 }}
+      containers:
+        - name: openwebui
+          securityContext:
+            {{- toYaml .Values.securityContext | nindent 12 }}
+          image: "{{ .Values.openwebui.image.repository }}:{{ .Values.openwebui.image.tag }}"
+          imagePullPolicy: {{ .Values.openwebui.image.pullPolicy }}
+          ports:
+            - name: http
+              containerPort: 8080
+              protocol: TCP
+          livenessProbe:
+            httpGet:
+              path: /api/v1/health
+              port: http
+            initialDelaySeconds: 30
+            periodSeconds: 30
+            timeoutSeconds: 10
+            failureThreshold: 3
+          readinessProbe:
+            httpGet:
+              path: /api/v1/health
+              port: http
+            initialDelaySeconds: 15
+            periodSeconds: 10
+            timeoutSeconds: 5
+            failureThreshold: 3
+          env:
+            # Basic OpenWebUI configuration
+            - name: WEBUI_NAME
+              value: {{ .Values.openwebui.config.name | quote }}
+            - name: WEBUI_URL
+              value: {{ .Values.openwebui.config.url | quote }}
+            - name: DEFAULT_USER_ROLE
+              value: {{ .Values.openwebui.config.defaultUserRole | quote }}
+            - name: ENABLE_SIGNUP
+              value: {{ .Values.openwebui.config.enableSignup | quote }}
+            
+            {{- if .Values.openwebui.oauth.enabled }}
+            # OAuth/SSO Configuration
+            - name: OAUTH_CLIENT_ID
+              value: {{ .Values.openwebui.oauth.clientId }}
+            - name: OAUTH_CLIENT_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "openwebui.fullname" . }}
+                  key: oauth-client-secret
+            - name: OAUTH_SCOPES
+              value: {{ .Values.openwebui.oauth.scopes | quote }}
+            - name: OAUTH_PROVIDER_NAME
+              value: {{ .Values.openwebui.oauth.providerName | quote }}
+            - name: OAUTH_REDIRECT_URI
+              value: "{{ .Values.openwebui.config.url }}/oauth/callback"
+            - name: OAUTH_AUTHORIZATION_URL
+              value: "http://authentik-server.{{ .Values.sharedServicesNamespace }}.svc.cluster.local:9000/application/o/authorize/"
+            - name: OAUTH_TOKEN_URL
+              value: "http://authentik-server.{{ .Values.sharedServicesNamespace }}.svc.cluster.local:9000/application/o/token/"
+            - name: OAUTH_USERINFO_URL
+              value: "http://authentik-server.{{ .Values.sharedServicesNamespace }}.svc.cluster.local:9000/application/o/userinfo/"
+            {{- end }}
+            
+            # Admin configuration
+            - name: ADMIN_EMAIL
+              value: {{ .Values.openwebui.config.adminSettings.adminEmail | quote }}
+            {{- if .Values.openwebui.config.adminSettings.adminPassword }}
+            - name: ADMIN_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "openwebui.fullname" . }}
+                  key: admin-password
+            {{- end }}
+            
+            # Additional environment variables
+            {{- with .Values.openwebui.extraEnvVars }}
+            {{- toYaml . | nindent 12 }}
+            {{- end }}
+          
+          resources:
+            {{- toYaml .Values.openwebui.resources | nindent 12 }}
+          
+          volumeMounts:
+            {{- if .Values.openwebui.persistence.enabled }}
+            - name: data
+              mountPath: {{ .Values.openwebui.persistence.mountPath }}
+            {{- end }}
+            - name: config
+              mountPath: /app/backend/config
+      
+      volumes:
+        {{- if .Values.openwebui.persistence.enabled }}
+        - name: data
+          persistentVolumeClaim:
+            claimName: {{ include "openwebui.fullname" . }}-pvc
+        {{- end }}
+        - name: config
+          configMap:
+            name: {{ include "openwebui.fullname" . }}
+      
+      {{- with .Values.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}

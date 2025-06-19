@@ -1,0 +1,274 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "wordpress-tenant.fullname" . }}
+  labels:
+    {{- include "wordpress-tenant.labels" . | nindent 4 }}
+    app.kubernetes.io/component: wordpress
+spec:
+  {{- if not .Values.autoscaling.enabled }}
+  replicas: {{ .Values.wordpress.replicaCount }}
+  {{- end }}
+  selector:
+    matchLabels:
+      {{- include "wordpress-tenant.selectorLabels" . | nindent 6 }}
+      app.kubernetes.io/component: wordpress
+  template:
+    metadata:
+      annotations:
+        checksum/config: {{ include (print $.Template.BasePath "/configmap.yaml") . | sha256sum }}
+        checksum/secret: {{ include (print $.Template.BasePath "/secret.yaml") . | sha256sum }}
+        {{- with .Values.monitoring.podAnnotations }}
+        {{- toYaml . | nindent 8 }}
+        {{- end }}
+      labels:
+        {{- include "wordpress-tenant.labels" . | nindent 8 }}
+        app.kubernetes.io/component: wordpress
+    spec:
+      {{- with .Values.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      serviceAccountName: {{ include "wordpress-tenant.serviceAccountName" . }}
+      securityContext:
+        {{- toYaml .Values.podSecurityContext | nindent 8 }}
+      initContainers:
+        - name: wait-for-db
+          image: busybox:1.35
+          command: ['sh', '-c']
+          args:
+            - |
+              echo "Waiting for database to be ready..."
+              {{- if .Values.database.ionos.enabled }}
+              until nc -z {{ .Values.database.ionos.host }} {{ .Values.database.ionos.port }}; do
+                echo "Waiting for IONOS hosted MariaDB..."
+                sleep 2
+              done
+              {{- else if .Values.database.external.enabled }}
+              until nc -z {{ .Values.database.external.host }} {{ .Values.database.external.port }}; do
+                echo "Waiting for external database..."
+                sleep 2
+              done
+              {{- else }}
+              until nc -z {{ include "wordpress-tenant.fullname" . }}-mariadb 3306; do
+                echo "Waiting for MariaDB..."
+                sleep 2
+              done
+              {{- end }}
+              echo "Database is ready!"
+      containers:
+        - name: wordpress
+          securityContext:
+            {{- toYaml .Values.securityContext | nindent 12 }}
+          image: "{{ .Values.wordpress.image.repository }}:{{ .Values.wordpress.image.tag | default .Chart.AppVersion }}"
+          imagePullPolicy: {{ .Values.wordpress.image.pullPolicy }}
+          ports:
+            - name: http
+              containerPort: 80
+              protocol: TCP
+          livenessProbe:
+            httpGet:
+              path: /wp-admin/install.php
+              port: http
+            initialDelaySeconds: 120
+            periodSeconds: 30
+            timeoutSeconds: 10
+            failureThreshold: 3
+          readinessProbe:
+            httpGet:
+              path: /wp-admin/install.php
+              port: http
+            initialDelaySeconds: 30
+            periodSeconds: 10
+            timeoutSeconds: 5
+            failureThreshold: 3
+          env:
+            # Database configuration
+            {{- if .Values.database.ionos.enabled }}
+            - name: WORDPRESS_DB_HOST
+              value: "{{ .Values.database.ionos.host }}:{{ .Values.database.ionos.port }}"
+            - name: WORDPRESS_DB_NAME
+              value: {{ .Values.database.ionos.name }}
+            - name: WORDPRESS_DB_USER
+              value: {{ .Values.database.ionos.user }}
+            - name: WORDPRESS_DB_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "wordpress-tenant.fullname" . }}-ionos-db
+                  key: password
+            # IONOS SSL configuration
+            {{- if .Values.database.ionos.ssl.enabled }}
+            - name: WORDPRESS_DB_SSL
+              value: "true"
+            - name: WORDPRESS_DB_SSL_MODE
+              value: {{ .Values.database.ionos.ssl.mode }}
+            - name: WORDPRESS_DB_SSL_CA
+              value: "/etc/ssl/certs/ionos-ca.pem"
+            {{- end }}
+            # IONOS connection settings
+            - name: WORDPRESS_DB_CHARSET
+              value: {{ .Values.database.ionos.connection.charset }}
+            - name: WORDPRESS_DB_COLLATE
+              value: {{ .Values.database.ionos.connection.collation }}
+            {{- else if .Values.database.external.enabled }}
+            - name: WORDPRESS_DB_HOST
+              value: "{{ .Values.database.external.host }}:{{ .Values.database.external.port }}"
+            - name: WORDPRESS_DB_NAME
+              value: {{ .Values.database.external.name }}
+            - name: WORDPRESS_DB_USER
+              value: {{ .Values.database.external.user }}
+            - name: WORDPRESS_DB_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "wordpress-tenant.fullname" . }}-db
+                  key: password
+            # External database SSL configuration
+            {{- if .Values.database.external.ssl.enabled }}
+            - name: WORDPRESS_DB_SSL
+              value: "true"
+            - name: WORDPRESS_DB_SSL_MODE
+              value: {{ .Values.database.external.ssl.mode }}
+            {{- if .Values.database.external.ssl.caCert }}
+            - name: WORDPRESS_DB_SSL_CA
+              value: "/etc/ssl/certs/external-ca.pem"
+            {{- end }}
+            {{- end }}
+            {{- else }}
+            - name: WORDPRESS_DB_HOST
+              value: "{{ include "wordpress-tenant.fullname" . }}-mariadb:3306"
+            - name: WORDPRESS_DB_NAME
+              value: {{ .Values.database.internal.auth.database }}
+            - name: WORDPRESS_DB_USER
+              value: {{ .Values.database.internal.auth.username }}
+            - name: WORDPRESS_DB_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "wordpress-tenant.fullname" . }}-mariadb
+                  key: mariadb-password
+            {{- end }}
+            
+            # WordPress configuration
+            - name: WORDPRESS_DEBUG
+              value: "{{ .Values.wordpress.config.debug }}"
+            - name: WORDPRESS_CONFIG_EXTRA
+              value: "define('WP_ENVIRONMENT_TYPE', '{{ .Values.wordpress.config.environment }}');"
+            - name: WORDPRESS_TABLE_PREFIX
+              value: {{ .Values.wordpress.config.tablePrefix }}
+            
+            # Site configuration
+            - name: SITE_URL
+              value: {{ .Values.wordpress.site.url }}
+            - name: SITE_TITLE
+              value: {{ .Values.wordpress.site.title }}
+            - name: SITE_ADMIN_USER
+              value: {{ .Values.wordpress.site.adminUser }}
+            - name: SITE_ADMIN_EMAIL
+              value: {{ .Values.wordpress.site.adminEmail }}
+            - name: SITE_ADMIN_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "wordpress-tenant.fullname" . }}
+                  key: admin-password
+            
+            # MCP Plugin configuration
+            {{- if .Values.wordpress.mcp.enabled }}
+            - name: WORDPRESS_MCP_API_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "wordpress-tenant.fullname" . }}
+                  key: mcp-api-key
+            {{- end }}
+            
+            # WordPress security keys
+            {{- range $key, $value := .Values.wordpress.auth.keys }}
+            - name: WORDPRESS_{{ $key | upper }}
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "wordpress-tenant.fullname" . }}
+                  key: {{ $key | lower }}
+            {{- end }}
+            
+            # OAuth/SSO configuration
+            {{- if .Values.wordpress.auth.oauth.enabled }}
+            - name: ENABLE_AUTHENTIK_SSO
+              value: "true"
+            - name: AUTHENTIK_URL
+              value: "http://authentik-server.{{ .Values.global.sharedServicesNamespace }}.svc.cluster.local:9000"
+            - name: WORDPRESS_OAUTH_CLIENT_ID
+              value: {{ .Values.wordpress.auth.oauth.clientId }}
+            - name: WORDPRESS_OAUTH_CLIENT_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "wordpress-tenant.fullname" . }}
+                  key: oauth-client-secret
+            {{- end }}
+            
+            # Additional WordPress configuration
+            - name: WORDPRESS_DESCRIPTION
+              value: {{ .Values.wordpress.site.title | quote }}
+            - name: WORDPRESS_LANGUAGE
+              value: {{ .Values.wordpress.config.language }}
+            - name: WORDPRESS_TIMEZONE
+              value: {{ .Values.wordpress.config.timezone }}
+          
+          resources:
+            {{- toYaml .Values.wordpress.resources | nindent 12 }}
+          
+          volumeMounts:
+            - name: wordpress-data
+              mountPath: {{ .Values.persistence.mountPath }}
+            {{- if .Values.persistence.enabled }}
+            - name: wordpress-persistent-storage
+              mountPath: /var/www/html/wp-content
+              subPath: wp-content
+            {{- end }}
+            {{- if and .Values.database.ionos.enabled .Values.database.ionos.ssl.enabled .Values.database.ionos.ssl.caCert }}
+            - name: ionos-ca-cert
+              mountPath: /etc/ssl/certs/ionos-ca.pem
+              subPath: ca.pem
+              readOnly: true
+            {{- end }}
+            {{- if and .Values.database.external.enabled .Values.database.external.ssl.enabled .Values.database.external.ssl.caCert }}
+            - name: external-ca-cert
+              mountPath: /etc/ssl/certs/external-ca.pem
+              subPath: ca.pem
+              readOnly: true
+            {{- end }}
+      
+      volumes:
+        - name: wordpress-data
+          emptyDir: {}
+        {{- if .Values.persistence.enabled }}
+        - name: wordpress-persistent-storage
+          persistentVolumeClaim:
+            claimName: {{ include "wordpress-tenant.fullname" . }}-pvc
+        {{- end }}
+        {{- if and .Values.database.ionos.enabled .Values.database.ionos.ssl.enabled .Values.database.ionos.ssl.caCert }}
+        - name: ionos-ca-cert
+          secret:
+            secretName: {{ include "wordpress-tenant.fullname" . }}-ionos-ca
+            items:
+              - key: ca.pem
+                path: ca.pem
+        {{- end }}
+        {{- if and .Values.database.external.enabled .Values.database.external.ssl.enabled .Values.database.external.ssl.caCert }}
+        - name: external-ca-cert
+          secret:
+            secretName: {{ include "wordpress-tenant.fullname" . }}-external-ca
+            items:
+              - key: ca.pem
+                path: ca.pem
+        {{- end }}
+      
+      {{- with .Values.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}

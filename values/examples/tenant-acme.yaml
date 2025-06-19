@@ -1,0 +1,165 @@
+# Example tenant values for ACME Corporation
+# Usage: helm install tenant-acme ./charts/wordpress-tenant -f values/examples/tenant-acme.yaml
+
+# Global settings
+global:
+  tenant: "acme"
+  sharedServicesNamespace: "shared-services"
+
+# WordPress configuration
+wordpress:
+  image:
+    repository: custom-wordpress
+    tag: latest
+    pullPolicy: IfNotPresent
+  
+  resources:
+    limits:
+      cpu: 1000m
+      memory: 1Gi
+    requests:
+      cpu: 500m
+      memory: 512Mi
+  
+  replicaCount: 2  # High availability for production tenant
+  
+  site:
+    url: "https://acme.example.com"
+    title: "ACME Corporation - WordPress Portal"
+    adminUser: "acme-admin"
+    adminEmail: "admin@acme.example.com"
+    # adminPassword: "secure-password-here"  # Will be generated if not provided
+  
+  config:
+    debug: false
+    environment: "production"
+    tablePrefix: "acme_"
+    language: "en_US"
+    timezone: "America/New_York"
+  
+  mcp:
+    enabled: true
+    # apiKey will be generated automatically
+  
+  auth:
+    oauth:
+      enabled: true
+      clientId: "wordpress-acme"
+      # clientSecret will be generated automatically
+
+# Database configuration - using IONOS hosted MariaDB for production
+database:
+  type: mariadb
+  # IONOS hosted MariaDB (recommended for production)
+  ionos:
+    enabled: true
+    # IONOS database cluster endpoint (from IONOS console)
+    host: "mariadb-cluster-acme.database.ionos.com"
+    port: 3306
+    name: "wordpress_acme"
+    user: "acme_user"
+    password: "secure-ionos-database-password"
+    # SSL configuration (IONOS requires SSL)
+    ssl:
+      enabled: true
+      mode: "require"
+      # CA certificate from IONOS (base64 encoded)
+      caCert: "LS0tLS1CRUdJTiBDRVJUSUZJQ0FURS0tLS0t...LS0tLS1FTkQgQ0VSVElGSUNBVEUtLS0tLQ=="
+    connection:
+      timeout: 30
+      maxConnections: 25  # Higher for production
+      charset: "utf8mb4"
+      collation: "utf8mb4_unicode_ci"
+    annotations:
+      ionos.com/database-cluster: "acme-production-cluster"
+      ionos.com/backup-policy: "daily"
+  # Alternative: Generic external database
+  external:
+    enabled: false
+    # host: "mariadb.database.svc.cluster.local"
+    # port: 3306
+    # name: "wordpress_acme"
+    # user: "acme_user"
+    # password: "secure-database-password"
+  internal:
+    enabled: false
+
+# Persistence configuration
+persistence:
+  enabled: true
+  storageClass: "fast-ssd"
+  size: 20Gi
+
+# Service configuration
+service:
+  type: ClusterIP
+  port: 80
+
+# Ingress configuration
+ingress:
+  enabled: true
+  className: "nginx"
+  annotations:
+    kubernetes.io/tls-acme: "true"
+    cert-manager.io/cluster-issuer: "letsencrypt-prod"
+    nginx.ingress.kubernetes.io/ssl-redirect: "true"
+  hosts:
+    - host: acme.example.com
+      paths:
+        - path: /
+          pathType: Prefix
+  tls:
+    - secretName: acme-wordpress-tls
+      hosts:
+        - acme.example.com
+
+# IONOS LoadBalancer (alternative to Ingress)
+loadBalancer:
+  enabled: false
+  # Uncomment for IONOS LoadBalancer
+  # enabled: true
+  # annotations:
+  #   service.beta.kubernetes.io/ionos-loadbalancer-forwarding-rules: |
+  #     - port: 80
+  #       protocol: HTTP
+  #       target_port: 80
+  # loadBalancerIP: "192.168.1.100"
+
+# Security settings
+securityContext:
+  runAsNonRoot: false
+  runAsUser: 33
+  runAsGroup: 33
+  fsGroup: 33
+
+# Autoscaling
+autoscaling:
+  enabled: true
+  minReplicas: 2
+  maxReplicas: 10
+  targetCPUUtilizationPercentage: 70
+  targetMemoryUtilizationPercentage: 80
+
+# Network policies
+networkPolicy:
+  enabled: true
+  allowFromSharedServices: true
+
+# Monitoring
+monitoring:
+  serviceMonitor:
+    enabled: true
+    interval: 30s
+  podAnnotations:
+    prometheus.io/scrape: "true"
+    prometheus.io/port: "80"
+    prometheus.io/path: "/wp-json/wp/v2/wpmcp/health"
+
+# Backup configuration
+backup:
+  enabled: true
+  schedule: "0 2 * * *"  # Daily at 2 AM
+  retention: "30d"
+  storage:
+    size: 50Gi
+    storageClass: "standard"

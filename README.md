@@ -20,17 +20,25 @@ The project is organized as follows:
 
 ```
 .
-├── docker/               # Docker configurations and custom images
-│   └── wordpress/        # Custom WordPress Docker image with automation
-├── docs/                 # Project documentation and guides
-│   ├── kb/               # Knowledgebase, learnings, external resources
-├── scripts/              # Simplified automation scripts
-│   ├── setup.sh          # Complete PoC setup
-│   ├── test.sh           # Comprehensive testing
-│   └── cleanup.sh        # Environment cleanup
-├── docker-compose.yml    # Multi-service orchestration
-├── .env.example          # Environment configuration template
-└── README.md             # This file
+├── charts/                 # Helm charts for Kubernetes deployment
+│   ├── wordpress-tenant/   # WordPress with MCP plugin for tenants
+│   ├── openwebui/         # Shared OpenWebUI instance
+│   └── shared-services/   # Shared infrastructure (Authentik, databases)
+├── docker/                # Docker configurations and custom images
+│   └── wordpress/         # Custom WordPress Docker image with automation
+├── docs/                  # Project documentation and guides
+│   ├── kb/                # Knowledgebase, learnings, external resources
+│   ├── helm-deployment-guide.md  # Kubernetes deployment guide
+│   └── tenant-onboarding.md      # Tenant onboarding process
+├── scripts/               # Simplified automation scripts
+│   ├── setup.sh           # Complete PoC setup
+│   ├── test.sh            # Comprehensive testing
+│   └── cleanup.sh         # Environment cleanup
+├── values/                # Helm chart configuration examples
+│   └── examples/          # Example tenant and service configurations
+├── docker-compose.yml     # Multi-service orchestration (local development)
+├── .env.example           # Environment configuration template
+└── README.md              # This file
 ```
 
 ## ✨ Key Features (PoC Scope)
@@ -38,7 +46,7 @@ The project is organized as follows:
 - **IONOS Secure Cloud Management:** Demonstrates IONOS Managed Kubernetes, networking (LoadBalancer for IP exposure), and storage solutions with a focus on security and scalability.
 - **Multi-Tenant Architecture:** Implements a comprehensive tenant isolation strategy for securely hosting multiple tenants within the same infrastructure. The strategy uses Kubernetes namespaces with strict security controls for the PoC, with a clear migration path to dedicated clusters for production scaling. Detailed analysis and implementation guidance is provided in the [Tenant Isolation Strategy](docs/kb/tenant-isolation-strategy.md) document.
 - **Automated Infrastructure Provisioning:** Using Terraform to create reusable modules for tenant infrastructure on IONOS.
-- **Automated Application Deployment:** Customizable Helm charts for deploying WordPress (with MCP) and OpenWebUI.
+- **Automated Application Deployment:** Customizable Helm charts for deploying WordPress (with MCP) and OpenWebUI into IONOS Managed Kubernetes with full multi-tenant support.
 - **Core Application Stack per Tenant:** Dedicated WordPress (with MCP plugin) instances and user accounts in a shared OpenWebUI instance with Authentik SSO integration.
 - **Data Persistence:** Strategy for persistent storage for WordPress and OpenWebUI using IONOS storage solutions.
 - **🎯 PoC Implementation Complete**: Full working integration with CRUD operations validated
@@ -92,11 +100,64 @@ The project is organized as follows:
 - **Git**: For cloning the repository
 - **curl**: For testing API endpoints
 
+### For Kubernetes Deployment
+
+- **Kubernetes cluster**: 1.24+ (IONOS Managed Kubernetes recommended)
+- **Helm**: 3.8+ for application deployment
+- **kubectl**: Configured for your cluster
+- **Persistent Volume support**: For data persistence
+- **Ingress Controller**: (optional) For external access
+
+## 🚢 Kubernetes Deployment
+
+### Quick Start with Helm Charts
+
+Deploy the complete multi-tenant platform to Kubernetes:
+
+```bash
+# 1. Deploy shared services (one-time setup)
+helm install shared-services ./charts/shared-services \
+  --namespace shared-services \
+  --create-namespace \
+  -f values/examples/shared-services.yaml
+
+# 2. Deploy a tenant
+helm install tenant-acme ./charts/wordpress-tenant \
+  --namespace tenant-acme \
+  --create-namespace \
+  -f values/examples/tenant-acme.yaml
+
+# 3. Access your deployment
+kubectl get ingress -A
+```
+
+### Production Deployment
+
+For production IONOS deployment with LoadBalancer:
+
+```bash
+# Configure IONOS-specific values
+helm install tenant-prod ./charts/wordpress-tenant \
+  --namespace tenant-prod \
+  --create-namespace \
+  --set loadBalancer.enabled=true \
+  --set loadBalancer.loadBalancerIP="YOUR_IONOS_IP" \
+  -f values/production/tenant-prod.yaml
+```
+
+See [Helm Deployment Guide](docs/helm-deployment-guide.md) for detailed instructions.
+
 ## 📚 Documentation
 
+### Local Development
 - **[Setup Guide](docs/setup-guide.md)**: Comprehensive installation and configuration guide
 - **[Automated SSO Guide](docs/automated-sso-guide.md)**: Complete Single Sign-On configuration with Authentik
 - **[Scripts Documentation](scripts/README.md)**: Helper scripts usage guide
+
+### Kubernetes Deployment
+- **[Helm Deployment Guide](docs/helm-deployment-guide.md)**: Kubernetes deployment with Helm charts
+- **[Tenant Onboarding](docs/tenant-onboarding.md)**: Step-by-step tenant onboarding process
+- **[Tenant Isolation Strategy](docs/kb/tenant-isolation-strategy.md)**: Multi-tenant architecture and security
 
 ## Contributing
 

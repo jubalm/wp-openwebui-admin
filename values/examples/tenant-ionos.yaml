@@ -1,0 +1,196 @@
+# Example tenant values using IONOS hosted MariaDB
+# Usage: helm install tenant-ionos ./charts/wordpress-tenant -f values/examples/tenant-ionos.yaml
+
+# Global settings
+global:
+  tenant: "ionos-demo"
+  sharedServicesNamespace: "shared-services"
+
+# WordPress configuration
+wordpress:
+  image:
+    repository: custom-wordpress
+    tag: latest
+    pullPolicy: IfNotPresent
+  
+  resources:
+    limits:
+      cpu: 1000m
+      memory: 1Gi
+    requests:
+      cpu: 500m
+      memory: 512Mi
+  
+  replicaCount: 2  # High availability with IONOS managed database
+  
+  site:
+    url: "https://ionos-demo.example.com"
+    title: "IONOS Demo - WordPress with Managed MariaDB"
+    adminUser: "ionos-admin"
+    adminEmail: "admin@ionos-demo.example.com"
+    # adminPassword: "secure-password-here"  # Will be generated if not provided
+  
+  config:
+    debug: false
+    environment: "production"
+    tablePrefix: "ionos_"
+    language: "en_US"
+    timezone: "Europe/Berlin"  # IONOS is based in Germany
+  
+  mcp:
+    enabled: true
+    # apiKey will be generated automatically
+  
+  auth:
+    oauth:
+      enabled: true
+      clientId: "wordpress-ionos-demo"
+      # clientSecret will be generated automatically
+
+# Database configuration - using IONOS hosted MariaDB
+database:
+  type: mariadb
+  # IONOS hosted MariaDB configuration
+  ionos:
+    enabled: true
+    # IONOS database cluster endpoint (from IONOS console)
+    host: "mariadb-cluster-12345.database.ionos.com"
+    port: 3306
+    # Database name (created in IONOS Database-as-a-Service)
+    name: "wordpress_ionos_demo"
+    # Database user (created in IONOS console)
+    user: "wp_ionos_user"
+    # Database password (from IONOS console - store securely)
+    password: "your-secure-ionos-db-password"
+    # SSL configuration (IONOS requires SSL)
+    ssl:
+      enabled: true
+      mode: "require"  # Options: require, verify-ca, verify-full
+      # CA certificate from IONOS (base64 encoded)
+      caCert: |
+        LS0tLS1CRUdJTiBDRVJUSUZJQ0FURS0tLS0t
+        # IONOS CA certificate content here
+        LS0tLS1FTkQgQ0VSVElGSUNBVEUtLS0tLQ==
+    # Connection configuration optimized for IONOS
+    connection:
+      timeout: 30
+      maxConnections: 20
+      charset: "utf8mb4"
+      collation: "utf8mb4_unicode_ci"
+    # IONOS-specific annotations
+    annotations:
+      ionos.com/database-cluster: "mariadb-cluster-12345"
+      ionos.com/backup-policy: "daily"
+      ionos.com/maintenance-window: "sun:03:00-sun:04:00"
+  # Disable internal database when using IONOS
+  internal:
+    enabled: false
+  # Disable external database when using IONOS
+  external:
+    enabled: false
+
+# Persistence configuration
+persistence:
+  enabled: true
+  storageClass: "ionos-enterprise-hdd"  # IONOS storage class
+  size: 20Gi
+
+# Service configuration
+service:
+  type: ClusterIP
+  port: 80
+
+# Ingress configuration
+ingress:
+  enabled: true
+  className: "nginx"
+  annotations:
+    kubernetes.io/tls-acme: "true"
+    cert-manager.io/cluster-issuer: "letsencrypt-prod"
+    nginx.ingress.kubernetes.io/ssl-redirect: "true"
+    # IONOS-specific ingress annotations
+    nginx.ingress.kubernetes.io/proxy-body-size: "100m"
+  hosts:
+    - host: ionos-demo.example.com
+      paths:
+        - path: /
+          pathType: Prefix
+  tls:
+    - secretName: ionos-demo-wordpress-tls
+      hosts:
+        - ionos-demo.example.com
+
+# IONOS LoadBalancer (alternative to Ingress)
+loadBalancer:
+  enabled: false
+  # Uncomment for IONOS LoadBalancer with managed MariaDB
+  # enabled: true
+  # annotations:
+  #   service.beta.kubernetes.io/ionos-loadbalancer-forwarding-rules: |
+  #     - port: 80
+  #       protocol: HTTP
+  #       target_port: 80
+  #     - port: 443
+  #       protocol: HTTPS
+  #       target_port: 80
+  # loadBalancerIP: "192.168.1.100"
+
+# Security settings
+securityContext:
+  runAsNonRoot: false
+  runAsUser: 33
+  runAsGroup: 33
+  fsGroup: 33
+
+# Autoscaling with IONOS managed database
+autoscaling:
+  enabled: true
+  minReplicas: 2
+  maxReplicas: 20
+  targetCPUUtilizationPercentage: 70
+  targetMemoryUtilizationPercentage: 80
+
+# Network policies
+networkPolicy:
+  enabled: true
+  allowFromSharedServices: true
+  # Additional egress rules for IONOS database
+  egress:
+    - to: []
+      ports:
+        - protocol: TCP
+          port: 3306
+      # Allow egress to IONOS database endpoints
+
+# Monitoring optimized for IONOS
+monitoring:
+  serviceMonitor:
+    enabled: true
+    interval: 30s
+  podAnnotations:
+    prometheus.io/scrape: "true"
+    prometheus.io/port: "80"
+    prometheus.io/path: "/wp-json/wp/v2/wpmcp/health"
+    ionos.com/monitoring: "enabled"
+
+# Backup configuration (WordPress files only - database backed up by IONOS)
+backup:
+  enabled: true
+  schedule: "0 2 * * *"  # Daily at 2 AM
+  retention: "30d"
+  storage:
+    size: 50Gi
+    storageClass: "ionos-enterprise-hdd"
+
+# IONOS-specific node configuration
+nodeSelector:
+  ionos.com/node-type: "standard"
+
+# Resource quotas and limits for IONOS deployment
+resources:
+  limits:
+    cpu: 2000m
+    memory: 2Gi
+  requests:
+    cpu: 1000m
+    memory: 1Gi
