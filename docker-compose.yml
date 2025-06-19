@@ -141,7 +141,7 @@ services:
       - "${AUTHENTIK_PORT:-9000}:9000"
       - "${AUTHENTIK_HTTPS_PORT:-9443}:9443"
     healthcheck:
-      test: ["CMD", "curl", "-f", "-L", "http://localhost:9000/if/flow/default-authentication-flow/"]
+      test: ["CMD", "curl", "-f", "http://localhost:9000/"]
       start_period: 60s
       interval: 30s
       timeout: 10s

@@ -62,11 +62,28 @@ This directory contains helper scripts for the WordPress and OpenWebUI Integrati
 ```
 
 **What it does**:
-- Tests Authentik server availability
+- Tests Authentik server availability with file-based logging
 - Validates OAuth endpoints
 - Checks WordPress and OpenWebUI accessibility
 - Reports SSO environment status
+- Saves debug logs to `/tmp/sso-test-logs/` for troubleshooting
 - Provides manual configuration guidance
+
+### `test-authentik.sh`
+**Purpose**: Comprehensive Authentik container health and functionality test
+
+**Usage**:
+```bash
+./scripts/test-authentik.sh
+```
+
+**What it does**:
+- Checks Docker container status and health
+- Tests Authentik UI accessibility at http://localhost:9000
+- Validates admin interface and OAuth endpoints
+- Tests inter-container network connectivity
+- Saves detailed logs to `/tmp/authentik-logs/` for debugging
+- Provides troubleshooting information
 
 ### `cleanup.sh`
 **Purpose**: Cleans up the PoC environment
@@ -88,7 +105,8 @@ This directory contains helper scripts for the WordPress and OpenWebUI Integrati
 2. **Initial Setup**: `./scripts/setup.sh`
 3. **Test Integration**: `./scripts/test-integration.sh`
 4. **Test SSO**: `./scripts/test-sso.sh`
-5. **Cleanup**: `./scripts/cleanup.sh` (when done)
+5. **Test Authentik**: `./scripts/test-authentik.sh` (if Authentik issues)
+6. **Cleanup**: `./scripts/cleanup.sh` (when done)
 
 ## Prerequisites
 
