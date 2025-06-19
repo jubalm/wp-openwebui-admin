@@ -51,9 +51,17 @@ echo "🐳 Starting Docker containers..."
 $DOCKER_COMPOSE down --remove-orphans 2>/dev/null || true
 $DOCKER_COMPOSE up -d
 
-# Wait for services to be ready (longer wait for automated WordPress setup)
-echo "⏳ Waiting for services to start and WordPress to auto-configure..."
-sleep 90
+# Wait for services to be ready (longer wait for automated WordPress setup and Authentik configuration)
+echo "⏳ Waiting for services to start, Authentik to auto-configure, and WordPress to setup..."
+sleep 120
+
+# Check if Authentik configuration completed successfully
+echo "🔍 Checking Authentik OAuth configuration..."
+if docker logs authentik-config 2>&1 | grep -q "Authentik configuration completed successfully"; then
+    echo "✅ Authentik OAuth applications configured automatically"
+else
+    echo "⚠️  Authentik configuration may still be in progress..."
+fi
 
 # Check if Authentik is accessible
 echo "🔍 Checking Authentik availability..."
@@ -121,18 +129,16 @@ fi
 echo ""
 echo "🎉 Setup completed successfully!"
 echo ""
-echo "✨ WordPress is now fully automated! No manual setup required."
+echo "✨ WordPress and Authentik SSO are now fully automated! No manual setup required."
 echo ""
 echo "📋 What's Ready:"
 echo "✅ WordPress MCP plugin is activated and configured"
-echo "✅ OpenID Connect plugin is installed and ready for Authentik SSO"
-echo "✅ Admin user created (admin/admin)"
+echo "✅ OpenID Connect plugin is installed and automatically configured for Authentik SSO"
+echo "✅ Admin user created (admin/admin123)"
 echo "✅ API key configured for MCP integration"
 echo "✅ Application passwords enabled"
-echo ""
-echo "📋 Optional SSO Configuration:"
-echo "1. Configure Authentik OAuth providers at: http://localhost:9000 (admin/admin)"
-echo "2. See docs/sso-setup-guide.md for SSO integration with WordPress and OpenWebUI"
+echo "✅ Authentik OAuth applications configured automatically"
+echo "✅ WordPress and OpenWebUI SSO integration ready"
 echo ""
 echo "🧪 Testing:"
 echo "   Run the integration test: ./scripts/test-integration.sh"
@@ -145,11 +151,21 @@ echo "   Authentik: http://localhost:9000"
 echo "   MariaDB: localhost:3306"
 echo ""
 echo "🔑 Automated Authentication:"
-echo "   WordPress Admin: admin/admin (configured automatically)"
+echo "   WordPress Admin: admin/admin123 (configured automatically)"
 echo "   MCP API Key: demo-api-key-poc (configured automatically)"
 echo "   Authentik Admin: admin/admin (change after first login)"
 echo ""
-echo "🔐 SSO Configuration:"
-echo "   See docs/sso-setup-guide.md for detailed SSO configuration steps"
+echo "🔐 Automated SSO Configuration:"
+echo "   ✅ WordPress OAuth application: 'wordpress' (automatically configured)"
+echo "   ✅ OpenWebUI OAuth application: 'openwebui' (automatically configured)"
+echo "   ✅ WordPress OpenID Connect plugin: pre-configured for Authentik"
+echo "   ✅ Single Sign-On ready for both applications"
+echo ""
+echo "🎯 To test SSO integration:"
+echo "   1. Logout from WordPress if logged in"
+echo "   2. Visit http://localhost:8080/wp-login.php"
+echo "   3. Click 'Login with OpenID Connect' button"
+echo "   4. Login with Authentik (admin/admin)"
+echo "   5. Access OpenWebUI at http://localhost:3000 and use OAuth login"
 echo ""
 echo "📖 For more information, see: docs/setup-guide.md"

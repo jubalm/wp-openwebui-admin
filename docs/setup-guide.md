@@ -32,11 +32,13 @@ Before starting, ensure you have the following installed:
    ./scripts/setup.sh
    ```
    
-   **🎉 That's it! WordPress is now fully automated:**
+   **🎉 That's it! Everything is now fully automated:**
    - ✅ WordPress core installed automatically
    - ✅ Admin user created (admin/admin123)
    - ✅ WordPress MCP plugin activated and configured
-   - ✅ OpenID Connect plugin ready for SSO
+   - ✅ OpenID Connect plugin installed and configured for Authentik SSO
+   - ✅ Authentik OAuth applications created automatically
+   - ✅ Single Sign-On ready for both WordPress and OpenWebUI
    - ✅ API keys generated automatically
 
 4. **Verify the Setup**
@@ -45,7 +47,12 @@ Before starting, ensure you have the following installed:
    - OpenWebUI: http://localhost:3000
    - Authentik: http://localhost:9000 (admin/admin)
 
-5. **Test the Integration**
+5. **Test SSO Integration**
+   ```bash
+   ./scripts/test-sso.sh
+   ```
+
+6. **Test the MCP Integration**
    ```bash
    ./scripts/test-integration.sh
    ```

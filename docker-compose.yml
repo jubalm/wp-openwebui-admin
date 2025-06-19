@@ -51,7 +51,10 @@ services:
     container_name: wp-instance
     restart: unless-stopped
     depends_on:
-      - mysql
+      mysql:
+        condition: service_started
+      authentik-config:
+        condition: service_completed_successfully
     environment:
       # Core WordPress database configuration
       WORDPRESS_DB_HOST: ${WORDPRESS_DB_HOST:-mysql:3306}
@@ -85,8 +88,14 @@ services:
       WORDPRESS_SECURE_AUTH_SALT: ${WORDPRESS_SECURE_AUTH_SALT:-put-your-unique-phrase-here}
       WORDPRESS_LOGGED_IN_SALT: ${WORDPRESS_LOGGED_IN_SALT:-put-your-unique-phrase-here}
       WORDPRESS_NONCE_SALT: ${WORDPRESS_NONCE_SALT:-put-your-unique-phrase-here}
+      # Authentik SSO Configuration
+      ENABLE_AUTHENTIK_SSO: ${ENABLE_AUTHENTIK_SSO:-true}
+      AUTHENTIK_URL: ${AUTHENTIK_URL:-http://localhost:9000}
+      WORDPRESS_OAUTH_CLIENT_ID: ${WORDPRESS_OAUTH_CLIENT_ID:-wordpress}
+      WORDPRESS_OAUTH_CLIENT_SECRET: ${WORDPRESS_OAUTH_CLIENT_SECRET:-wordpress-secret-auto}
     volumes:
       - wordpress_data:/var/www/html
+      - oauth_config:/tmp
     networks:
       - wp-network
     ports:
@@ -121,6 +130,37 @@ services:
     ports:
       - "${AUTHENTIK_PORT:-9000}:9000"
       - "${AUTHENTIK_HTTPS_PORT:-9443}:9443"
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:9000/if/admin/"]
+      start_period: 30s
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # Authentik Configuration Service
+  authentik-config:
+    build:
+      context: .
+      dockerfile: docker/authentik-config/Dockerfile
+    container_name: authentik-config
+    depends_on:
+      authentik-server:
+        condition: service_healthy
+    environment:
+      AUTHENTIK_URL: ${AUTHENTIK_URL:-http://authentik-server:9000}
+      AUTHENTIK_BOOTSTRAP_PASSWORD: ${AUTHENTIK_BOOTSTRAP_PASSWORD:-admin}
+      AUTHENTIK_BOOTSTRAP_TOKEN: ${AUTHENTIK_BOOTSTRAP_TOKEN:-bootstrap-token}
+      SITE_URL: ${SITE_URL:-http://localhost:8080}
+      WEBUI_URL: ${WEBUI_URL:-http://localhost:3000}
+      WORDPRESS_OAUTH_CLIENT_ID: ${WORDPRESS_OAUTH_CLIENT_ID:-wordpress}
+      WORDPRESS_OAUTH_CLIENT_SECRET: ${WORDPRESS_OAUTH_CLIENT_SECRET:-wordpress-secret-auto}
+      OPENWEBUI_OAUTH_CLIENT_ID: ${OPENWEBUI_OAUTH_CLIENT_ID:-openwebui}
+      OPENWEBUI_OAUTH_CLIENT_SECRET: ${OPENWEBUI_OAUTH_CLIENT_SECRET:-openwebui-secret-auto}
+    volumes:
+      - oauth_config:/tmp
+    networks:
+      - wp-network
+    restart: "no"
 
   # Authentik Worker
   authentik-worker:
@@ -154,14 +194,15 @@ services:
     container_name: openwebui-instance
     restart: unless-stopped
     depends_on:
-      - authentik-server
+      authentik-config:
+        condition: service_completed_successfully
     environment:
       - WEBUI_NAME=${WEBUI_NAME:-WordPress Integration Demo}
       - WEBUI_URL=${WEBUI_URL:-http://localhost:3000}
       - DEFAULT_USER_ROLE=${DEFAULT_USER_ROLE:-admin}
       - ENABLE_SIGNUP=${ENABLE_SIGNUP:-false}
       - OAUTH_CLIENT_ID=${OPENWEBUI_OAUTH_CLIENT_ID:-openwebui}
-      - OAUTH_CLIENT_SECRET=${OPENWEBUI_OAUTH_CLIENT_SECRET:-openwebui-secret}
+      - OAUTH_CLIENT_SECRET=${OPENWEBUI_OAUTH_CLIENT_SECRET:-openwebui-secret-auto}
       - OAUTH_SCOPES=${OPENWEBUI_OAUTH_SCOPES:-openid profile email}
       - OAUTH_PROVIDER_NAME=${OPENWEBUI_OAUTH_PROVIDER_NAME:-Authentik}
       - OAUTH_REDIRECT_URI=${OPENWEBUI_OAUTH_REDIRECT_URI:-http://localhost:3000/oauth/callback}
@@ -185,6 +226,7 @@ volumes:
   authentik_media:
   authentik_certs:
   authentik_custom_templates:
+  oauth_config:
 
 networks:
   wp-network:
