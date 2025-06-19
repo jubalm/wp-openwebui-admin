@@ -102,17 +102,21 @@ echo "Container image: $(docker inspect authentik-server --format='{{.Config.Ima
 echo ""
 echo "6️⃣ Checking for common issues..."
 
-# Check if containers can communicate
-if docker exec authentik-server ping -c 1 postgres > /tmp/authentik-logs/postgres-ping.txt 2>&1; then
+# Check if containers can communicate (using Python since ping is not available)
+echo "Testing PostgreSQL connectivity..."
+if docker exec authentik-server python3 -c "import socket; socket.create_connection(('postgres', 5432), timeout=5)" > /tmp/authentik-logs/postgres-conn.txt 2>&1; then
     echo "✅ Authentik can reach PostgreSQL"
 else
     echo "⚠️  Authentik cannot reach PostgreSQL (network issue)"
+    echo "Connection test error saved to /tmp/authentik-logs/postgres-conn.txt"
 fi
 
-if docker exec authentik-server ping -c 1 redis > /tmp/authentik-logs/redis-ping.txt 2>&1; then
+echo "Testing Redis connectivity..."
+if docker exec authentik-server python3 -c "import socket; socket.create_connection(('redis', 6379), timeout=5)" > /tmp/authentik-logs/redis-conn.txt 2>&1; then
     echo "✅ Authentik can reach Redis"
 else
     echo "⚠️  Authentik cannot reach Redis (network issue)"
+    echo "Connection test error saved to /tmp/authentik-logs/redis-conn.txt"
 fi
 
 echo ""
@@ -129,6 +133,8 @@ echo "   - health-status.txt: Docker health check status"
 echo "   - ui-response.txt: UI response content"
 echo "   - container-logs.txt: Recent container logs"
 echo "   - container-inspect.json: Full container details"
+echo "   - postgres-conn.txt: PostgreSQL connectivity test"
+echo "   - redis-conn.txt: Redis connectivity test"
 echo ""
 echo "🔑 Default Login:"
 echo "   URL: http://localhost:9000"
