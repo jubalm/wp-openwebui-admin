@@ -30,16 +30,16 @@ A primary objective of the initial Proof of Concept (PoC) is to **showcase the c
 ### 4.1. Core Application Stack per Tenant
 
 - Each tenant will have a dedicated WordPress instance with the MCP (Model Context Protocol) plugin installed and configured.
-- Each tenant will have a user account in a shared OpenWebUI instance with non-admin privileges for content management.
-- OpenWebUI administration will be managed exclusively by platform administrators, ensuring separation of roles and responsibilities.
-- All tenants share a single centralized OpenWebUI instance with secure user isolation via Authentik SSO integration.
-- The shared OpenWebUI will be configured to integrate with each tenant's WordPress instance via the MCP plugin for content management.
+- **Single OpenWebUI instance** shared across all tenants, with tenant-specific user accounts for isolation.
+- **Authentik SSO** integration to manage authentication and sessions across both OpenWebUI and WordPress instances.
+- OpenWebUI will be configured to integrate with tenant WordPress instances via the MCP plugin for content management.
 
 ### 4.2. Tenant Isolation
 
-- **Strategy:** Implement a robust tenant isolation strategy following the comprehensive analysis and recommendations outlined in the [Tenant Isolation Strategy document](tenant-isolation-strategy.md). The chosen approach uses Kubernetes namespaces with strict NetworkPolicies and RBAC for the PoC, with a clear migration path to dedicated clusters for production scaling.
-- **Data Isolation:** Ensure data (WordPress database, file uploads, logs) is strictly isolated between tenants, while OpenWebUI remains a centralized shared instance managed by platform administrators with tenant user separation via Authentik SSO.
-- **Implementation Details:** See the [Tenant Isolation Strategy](tenant-isolation-strategy.md) for detailed implementation guidance, security considerations, and operational procedures.
+- **Strategy:** Simplified PoC approach using Kubernetes namespaces for WordPress instances with user-level isolation in the shared OpenWebUI instance.
+- **Database Strategy:** Utilize IONOS MariaDB managed database cluster for persistent storage instead of CSI-based storage solutions.
+- **Authentication Isolation:** Authentik SSO provides session management and user isolation across the shared OpenWebUI and tenant-specific WordPress instances.
+- **Data Isolation:** Ensure WordPress data (database, file uploads) is strictly isolated between tenants, while OpenWebUI uses user-level access controls.
 
 ### 4.3. Automated Infrastructure Provisioning
 
@@ -61,10 +61,10 @@ A primary objective of the initial Proof of Concept (PoC) is to **showcase the c
 
 ### 4.6. Data Persistence
 
-- **Strategy:** Define and implement a strategy for persistent storage for WordPress (database, file uploads) and any stateful OpenWebUI data, ensuring isolation and recoverability, utilizing IONOS storage solutions where appropriate.
-- **Backup & Recovery:** Outline a backup and recovery plan for tenant data.
-
-  > **Note:** Backup and recovery implementation is out of scope for the initial PoC and will be addressed in future phases.
+- **Database Strategy:** Utilize IONOS MariaDB managed database cluster for WordPress instances, providing isolated databases per tenant with managed backups and high availability.
+- **Storage Strategy:** Use IONOS storage solutions for WordPress file uploads and static assets, with tenant-specific isolation.
+- **OpenWebUI Data:** Shared OpenWebUI instance data stored in the managed database with user-level access controls for tenant isolation.
+- **Backup & Recovery:** Leverage IONOS managed database backup capabilities for automated data protection.
 
 ### 4.7. Configuration Management
 
@@ -80,10 +80,12 @@ A primary objective of the initial Proof of Concept (PoC) is to **showcase the c
 
 - **Cloud Platform:** IONOS Cloud.
 - **Orchestration:** IONOS Managed Kubernetes will be the primary container orchestration platform.
-- **Infrastructure as Code:** Terraform will be used for infrastructure provisioning on IONOS.
+- **Infrastructure as Code:** Terraform will be used for simplified infrastructure provisioning on IONOS.
 - **Application Deployment:** Helm will be used for packaging and deploying applications into IONOS Managed Kubernetes.
-- **Core Applications:** WordPress (with MCP plugin), OpenWebUI.
-- **Key Considerations:** The architecture will be designed to leverage IONOS services for networking (LoadBalancers for IP exposure), storage, and security where applicable. The PoC will validate the core integration and automation on this platform.
+- **Core Applications:** WordPress instances per tenant (with MCP plugin), single shared OpenWebUI instance, Authentik SSO.
+- **Database:** IONOS MariaDB managed database cluster for persistent storage.
+- **Authentication:** Authentik SSO for unified authentication across WordPress and OpenWebUI.
+- **Key Considerations:** Simplified PoC architecture leveraging IONOS managed services (Kubernetes, MariaDB, LoadBalancers) for rapid deployment and demonstration.
 
 ## 6. Success Metrics
 

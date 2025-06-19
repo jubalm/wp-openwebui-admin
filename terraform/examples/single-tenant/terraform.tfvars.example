@@ -1,0 +1,13 @@
+# Example terraform.tfvars.example
+# Copy this file to terraform.tfvars and update the values
+
+# IONOS MariaDB configuration
+mariadb_admin_user     = "admin"
+mariadb_admin_password = "your-secure-password"
+
+# Authentik SSO configuration  
+authentik_client_secret = "your-authentik-client-secret"
+
+# Optional: Override default URLs if different
+# mariadb_host = "your-mariadb-cluster.ionos.com"
+# authentik_issuer_url = "https://your-authentik.domain.com"
