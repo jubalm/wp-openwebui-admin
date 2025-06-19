@@ -1,5 +1,5 @@
-# Example single tenant configuration
-# This demonstrates how to use the tenant module for a single tenant deployment
+# Example single tenant configuration with existing IONOS MariaDB cluster
+# Deploy infrastructure first using the infrastructure example
 
 terraform {
   required_providers {
@@ -19,6 +19,13 @@ provider "kubernetes" {
   config_path = "~/.kube/config"  # Update with your kubeconfig path
 }
 
+# Configure MySQL provider for MariaDB access
+provider "mysql" {
+  endpoint = "${var.mariadb_host}:${var.mariadb_port}"
+  username = var.mariadb_admin_user
+  password = var.mariadb_admin_password
+}
+
 # Example tenant deployment
 module "example_tenant" {
   source = "../../modules/tenant"
@@ -27,7 +34,7 @@ module "example_tenant" {
   tenant_id      = "example-tenant"
   wp_admin_email = "admin@example-tenant.com"
   
-  # IONOS MariaDB configuration
+  # IONOS MariaDB configuration (from infrastructure deployment)
   mariadb_host           = var.mariadb_host
   mariadb_admin_user     = var.mariadb_admin_user
   mariadb_admin_password = var.mariadb_admin_password

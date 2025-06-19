@@ -1,5 +1,6 @@
 # Outputs for the example tenant
 
+# Tenant outputs
 output "tenant_namespace" {
   description = "Kubernetes namespace for the tenant"
   value       = module.example_tenant.namespace_name
@@ -23,7 +24,7 @@ output "loadbalancer_ip" {
 output "next_steps" {
   description = "Next steps after deployment"
   value = <<-EOT
-    WordPress deployment completed successfully!
+    WordPress deployment with IONOS MariaDB cluster completed successfully!
     
     1. Access WordPress at: ${module.example_tenant.wordpress_url}
     2. Configure Authentik OIDC client with:

@@ -1,9 +1,15 @@
-# Input variables for the example tenant
+# Input variables for the example tenant with IONOS MariaDB cluster
+# Note: Deploy infrastructure first using the infrastructure example to get these values
 
 variable "mariadb_host" {
-  description = "IONOS MariaDB cluster hostname"
+  description = "IONOS MariaDB cluster hostname (from infrastructure deployment)"
   type        = string
-  default     = "mariadb-cluster.example.com"  # Update with actual IONOS MariaDB endpoint
+}
+
+variable "mariadb_port" {
+  description = "MariaDB port"
+  type        = number
+  default     = 3306
 }
 
 variable "mariadb_admin_user" {
