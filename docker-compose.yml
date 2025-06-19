@@ -55,9 +55,12 @@ services:
       timeout: 3s
       retries: 5
 
-  # WordPress with MCP Plugin (Standard Image)
+  # WordPress with MCP Plugin (Custom Image)
   wordpress:
-    image: wordpress:php8.2-apache
+    build:
+      context: ./docker/wordpress
+      dockerfile: Dockerfile
+    image: custom-wordpress:latest
     container_name: wp-instance
     restart: unless-stopped
     depends_on:

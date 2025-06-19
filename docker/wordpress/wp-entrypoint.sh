@@ -81,6 +81,10 @@ echo "Starting WordPress with custom entrypoint..."
         echo "WordPress is already installed!"
     fi
 
+    # Update WordPress permalink structure
+    wp --allow-root --path="/var/www/html" option update permalink_structure '/%postname%/'
+    echo "Permalink structure updated to '/%postname%/'!"
+
     echo "WordPress setup complete! Site available at ${SITE_URL:-http://localhost:8080}"
 } &
 

@@ -44,7 +44,7 @@ RUN chmod +x /usr/local/bin/wp && \
   chmod -R 755 /usr/src/wordpress/wp-content/plugins
 
 # Copy custom entrypoint script
-COPY docker/wordpress/wp-entrypoint.sh /usr/local/bin/wp-entrypoint.sh
+COPY wp-entrypoint.sh /usr/local/bin/wp-entrypoint.sh
 RUN chmod +x /usr/local/bin/wp-entrypoint.sh
 
 # Use custom entrypoint
