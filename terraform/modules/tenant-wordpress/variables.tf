@@ -8,6 +8,16 @@ variable "tenant_id" {
   }
 }
 
+variable "namespace" {
+  description = "Kubernetes namespace for the tenant"
+  type        = string
+}
+
+variable "database_secret_name" {
+  description = "Name of the database credentials secret"
+  type        = string
+}
+
 variable "wp_admin_email" {
   description = "WordPress admin email address"
   type        = string
@@ -18,25 +28,11 @@ variable "wp_admin_email" {
   }
 }
 
-# Database configuration
-variable "mariadb_host" {
-  description = "IONOS MariaDB cluster hostname"
+variable "wp_site_url" {
+  description = "WordPress site URL (LoadBalancer IP or domain)"
   type        = string
 }
 
-variable "mariadb_admin_user" {
-  description = "MariaDB admin username"
-  type        = string
-  sensitive   = true
-}
-
-variable "mariadb_admin_password" {
-  description = "MariaDB admin password"
-  type        = string
-  sensitive   = true
-}
-
-# Authentik SSO configuration
 variable "authentik_issuer_url" {
   description = "Authentik SSO issuer URL"
   type        = string
@@ -51,25 +47,6 @@ variable "authentik_client_secret" {
   description = "Authentik OIDC client secret"
   type        = string
   sensitive   = true
-}
-
-# Resource configuration
-variable "enable_resource_quota" {
-  description = "Enable ResourceQuota for the namespace"
-  type        = bool
-  default     = false
-}
-
-variable "cpu_limit" {
-  description = "CPU limit for the namespace"
-  type        = string
-  default     = "1000m"
-}
-
-variable "memory_limit" {
-  description = "Memory limit for the namespace"
-  type        = string
-  default     = "2Gi"
 }
 
 variable "storage_size" {

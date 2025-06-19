@@ -1,115 +1,49 @@
-# Single Tenant Example Configuration
-# Demonstrates how to provision infrastructure for a single tenant
+# Example single tenant configuration
+# This demonstrates how to use the tenant module for a single tenant deployment
 
 terraform {
-  required_version = ">= 1.0"
-  
   required_providers {
     kubernetes = {
       source  = "hashicorp/kubernetes"
-      version = "~> 2.20"
+      version = "~> 2.0"
     }
-    random = {
-      source  = "hashicorp/random"
-      version = "~> 3.1"
+    mysql = {
+      source  = "petoju/mysql"
+      version = "~> 3.0"
     }
   }
 }
 
-# Configure Kubernetes provider
+# Configure Kubernetes provider for IONOS Managed Kubernetes
 provider "kubernetes" {
-  # Configuration will be provided via environment variables or kubeconfig
-  # For IONOS Managed Kubernetes, use the kubeconfig from IONOS Cloud Console
+  config_path = "~/.kube/config"  # Update with your kubeconfig path
 }
 
-# Provision infrastructure for tenant-001
-module "tenant_001" {
+# Example tenant deployment
+module "example_tenant" {
   source = "../../modules/tenant"
-
-  # Basic tenant configuration
-  tenant_id   = "tenant-001"
-  environment = "production"
-
-  # Admin credentials
-  wp_admin_email         = "admin@tenant001.example.com"
-  openwebui_admin_email  = "admin@tenant001.example.com"
-
-  # Domain configuration
-  base_domain       = "example.com"
-  wordpress_domain  = "tenant001-wp.example.com"
-  openwebui_domain  = "tenant001-ui.example.com"
-
-  # Resource quotas (suitable for small-medium tenant)
-  cpu_requests    = "1"      # 1 CPU core
-  memory_requests = "2Gi"    # 2GB RAM
-  cpu_limits      = "2"      # 2 CPU cores
-  memory_limits   = "4Gi"    # 4GB RAM
-
-  # Storage configuration
-  storage_class_name                = "ionos-csi-ssd"
-  wordpress_db_storage_size         = "10Gi"
-  wordpress_content_storage_size    = "5Gi"
-  openwebui_storage_size           = "2Gi"
-
-  # Security configuration
-  pod_security_standard = "restricted"
-  enable_tls           = true
-  cert_manager_issuer  = "letsencrypt-prod"
-
-  # Enable security features
-  enable_security_scanning = true
-  enable_audit_logging    = true
-  log_level              = "INFO"
-
-  # Backup configuration
-  enable_backup_config  = true
-  backup_schedule       = "0 2 * * *"  # Daily at 2 AM
-  backup_retention_days = 30
-}
-
-# Example of provisioning a second tenant with different resources
-module "tenant_002" {
-  source = "../../modules/tenant"
-
-  # Basic tenant configuration
-  tenant_id   = "tenant-002"
-  environment = "production"
-
-  # Admin credentials
-  wp_admin_email         = "admin@tenant002.example.com"
-  openwebui_admin_email  = "admin@tenant002.example.com"
-
-  # Domain configuration
-  base_domain       = "example.com"
-  wordpress_domain  = "tenant002-wp.example.com"
-  openwebui_domain  = "tenant002-ui.example.com"
-
-  # Higher resource quotas (suitable for larger tenant)
-  cpu_requests    = "2"      # 2 CPU cores
-  memory_requests = "4Gi"    # 4GB RAM
-  cpu_limits      = "4"      # 4 CPU cores
-  memory_limits   = "8Gi"    # 8GB RAM
-
-  # Larger storage configuration
-  storage_class_name                = "ionos-csi-ssd"
-  wordpress_db_storage_size         = "20Gi"
-  wordpress_content_storage_size    = "10Gi"
-  openwebui_storage_size           = "5Gi"
-
-  # Security configuration
-  pod_security_standard = "restricted"
-  enable_tls           = true
-  cert_manager_issuer  = "letsencrypt-prod"
-
-  # Enable additional security features
-  enable_security_scanning     = true
-  scan_medium_vulnerabilities  = true
-  scan_low_vulnerabilities     = true
-  enable_audit_logging        = true
-  log_level                   = "DEBUG"  # More verbose logging
-
-  # More frequent backups for important tenant
-  enable_backup_config  = true
-  backup_schedule       = "0 */6 * * *"  # Every 6 hours
-  backup_retention_days = 90
+  
+  # Tenant configuration
+  tenant_id      = "example-tenant"
+  wp_admin_email = "admin@example-tenant.com"
+  
+  # IONOS MariaDB configuration
+  mariadb_host           = var.mariadb_host
+  mariadb_admin_user     = var.mariadb_admin_user
+  mariadb_admin_password = var.mariadb_admin_password
+  
+  # Authentik SSO configuration
+  authentik_issuer_url    = var.authentik_issuer_url
+  authentik_client_id     = "wordpress-example-tenant"
+  authentik_client_secret = var.authentik_client_secret
+  
+  # Resource allocation for demo
+  enable_resource_quota = true
+  cpu_limit            = "1500m"
+  memory_limit         = "3Gi"
+  storage_size         = "15Gi"
+  
+  # WordPress pod resources
+  cpu_requests    = "250m"
+  memory_requests = "512Mi"
 }
