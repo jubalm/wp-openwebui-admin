@@ -4,7 +4,8 @@ This example demonstrates how to deploy the shared infrastructure components for
 
 ## What's Created
 
-- **IONOS MariaDB Cluster**: Managed database cluster for all tenant databases
+- **IONOS Datacenter**: Virtual datacenter for the platform
+- **IONOS PostgreSQL Cluster**: Managed database cluster for Authentik SSO
 - Network security configuration
 - Maintenance windows and backup settings
 
@@ -12,7 +13,6 @@ This example demonstrates how to deploy the shared infrastructure components for
 
 - IONOS Cloud account with API access
 - Valid IONOS Cloud API token
-- IONOS datacenter and LAN configured
 
 ## Usage
 
@@ -23,9 +23,8 @@ This example demonstrates how to deploy the shared infrastructure components for
 
 2. **Edit terraform.tfvars** with your actual values:
    - `ionos_token`: Your IONOS Cloud API token
-   - `datacenter_id`: Your IONOS datacenter ID
-   - `lan_id`: LAN ID for the MariaDB cluster
-   - `mariadb_admin_user/password`: Admin credentials for the database
+   - `lan_id`: LAN ID for the infrastructure
+   - `postgres_admin_username/password`: Admin credentials for PostgreSQL
 
 3. **Deploy the infrastructure:**
    ```bash
@@ -36,24 +35,33 @@ This example demonstrates how to deploy the shared infrastructure components for
 
 4. **Note the outputs** for use in tenant configurations:
    ```bash
-   terraform output mariadb_cluster_host
-   terraform output mariadb_admin_username
-   terraform output mariadb_admin_password
+   terraform output datacenter_id
+   terraform output postgres_cluster_dns_name
+   terraform output postgres_admin_username
+   terraform output postgres_admin_password
    ```
 
 ## Next Steps
 
 After deploying the infrastructure:
 
-1. Use the MariaDB cluster outputs to configure tenant deployments
-2. Deploy individual tenants using the `single-tenant` example
-3. Configure Authentik SSO integration
+1. Use the datacenter_id output to configure tenant deployments
+2. Deploy individual tenants using the `single-tenant` example - each gets its own MariaDB cluster
+3. Configure Authentik SSO integration using the PostgreSQL cluster
+
+## Architecture Changes
+
+This streamlined setup creates:
+- **Datacenter**: Using the existing `datacenter` module
+- **PostgreSQL for Authentik**: IONOS hosted PostgreSQL for SSO
+- **OpenWebUI**: Uses SQLite (built-in) 
+- **Single tenants**: Each gets a separate MariaDB cluster for privacy
 
 ## Cost Considerations
 
-This creates a managed MariaDB cluster which will incur IONOS charges based on:
-- Instance size (cores/RAM)
-- Storage size
-- Data transfer
+This creates:
+- A datacenter (minimal cost)
+- A managed PostgreSQL cluster for Authentik
+- Each tenant will create its own MariaDB cluster (separate billing)
 
-Review IONOS pricing for MariaDB managed services before deployment.
+Review IONOS pricing for managed database services before deployment.

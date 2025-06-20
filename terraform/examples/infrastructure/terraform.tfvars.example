@@ -2,25 +2,25 @@
 # Copy this file to terraform.tfvars and update the values
 
 # IONOS Cloud configuration
-ionos_token   = "your-ionos-cloud-api-token"
-datacenter_id = "12345678-1234-1234-1234-123456789012"
-lan_id        = "1"
-location      = "de/fra"
+ionos_token = "your-ionos-cloud-api-token"
+lan_id      = "1"
+location    = "de/fra"
 
-# MariaDB cluster configuration
-cluster_name    = "wp-openwebui-mariadb"
-mariadb_version = "10.6"
-instances       = 1
-cores          = 2
-ram            = 4096
-storage_size   = 20
+# PostgreSQL cluster configuration for Authentik
+postgres_cluster_name    = "authentik-postgres"
+postgres_version         = "15"
+postgres_instances       = 1
+postgres_cores          = 2
+postgres_ram            = 4096
+postgres_storage_size   = 20
+postgres_storage_type   = "HDD"
 
 # Security configuration
 allowed_cidr = "10.0.0.0/8"
 
-# Database credentials
-mariadb_admin_user     = "admin"
-mariadb_admin_password = "your-secure-mariadb-password"
+# PostgreSQL credentials
+postgres_admin_username = "admin"
+postgres_admin_password = "your-secure-postgres-password"
 
 # Maintenance configuration
 maintenance_day  = "Sunday"

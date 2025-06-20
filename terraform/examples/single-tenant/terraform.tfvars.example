@@ -1,14 +1,45 @@
 # Example terraform.tfvars for tenant deployment
 # Copy this file to terraform.tfvars and update the values
-# Note: Deploy infrastructure first to get the MariaDB connection details
+# Note: Deploy infrastructure first to get the datacenter_id
 
-# MariaDB cluster connection details (from infrastructure deployment)
-mariadb_host = "your-mariadb-cluster.ionos.com"  # Get from infrastructure outputs
-mariadb_admin_user     = "admin"
+# IONOS Cloud configuration
+ionos_token = "your-ionos-cloud-api-token"
+
+# Infrastructure details (from infrastructure deployment)
+datacenter_id = "12345678-1234-1234-1234-123456789012"  # Get from infrastructure outputs
+lan_id        = "1"
+location      = "de/fra"
+
+# Tenant configuration
+tenant_id      = "example-tenant"
+wp_admin_email = "admin@example-tenant.com"
+
+# MariaDB cluster configuration (dedicated for this tenant)
+mariadb_version         = "10.6"
+mariadb_instances       = 1
+mariadb_cores          = 2
+mariadb_ram            = 4096
+mariadb_storage_size   = 20
+mariadb_admin_username = "admin"
 mariadb_admin_password = "your-secure-mariadb-password"
+
+# Security configuration
+allowed_cidr = "10.0.0.0/8"
+
+# Maintenance configuration
+maintenance_day  = "Sunday"
+maintenance_time = "03:00:00"
 
 # Authentik SSO configuration  
 authentik_client_secret = "your-authentik-client-secret"
 
 # Optional: Override default URLs if different
 # authentik_issuer_url = "https://your-authentik.domain.com"
+
+# Optional: Override resource allocation
+# enable_resource_quota = true
+# cpu_limit            = "1500m"
+# memory_limit         = "3Gi"
+# storage_size         = "15Gi"
+# cpu_requests         = "250m"
+# memory_requests      = "512Mi"

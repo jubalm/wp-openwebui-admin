@@ -1,14 +1,5 @@
-# Infrastructure configuration variables
-
-# IONOS Cloud authentication
-variable "ionos_token" {
-  description = "Token for authenticating with IONOS Cloud"
-  type        = string
-  sensitive   = true
-}
-
-# PostgreSQL cluster configuration for Authentik
-variable "postgres_cluster_name" {
+# PostgreSQL cluster configuration variables
+variable "cluster_name" {
   description = "Display name for the PostgreSQL cluster"
   type        = string
   default     = "authentik-postgres"
@@ -21,48 +12,53 @@ variable "postgres_version" {
 }
 
 variable "location" {
-  description = "Location for the infrastructure"
+  description = "Location for the PostgreSQL cluster"
   type        = string
   default     = "de/fra"
 }
 
-variable "postgres_instances" {
+variable "instances" {
   description = "Number of PostgreSQL instances"
   type        = number
   default     = 1
 }
 
-variable "postgres_cores" {
-  description = "Number of CPU cores per PostgreSQL instance"
+variable "cores" {
+  description = "Number of CPU cores per instance"
   type        = number
   default     = 2
 }
 
-variable "postgres_ram" {
-  description = "RAM in MB per PostgreSQL instance"
+variable "ram" {
+  description = "RAM in MB per instance"
   type        = number
   default     = 4096
 }
 
-variable "postgres_storage_size" {
-  description = "Storage size in GB for PostgreSQL"
+variable "storage_size" {
+  description = "Storage size in GB"
   type        = number
   default     = 20
 }
 
-variable "postgres_storage_type" {
-  description = "Storage type for PostgreSQL"
+variable "storage_type" {
+  description = "Storage type"
   type        = string
   default     = "HDD"
 }
 
+variable "datacenter_id" {
+  description = "IONOS datacenter ID"
+  type        = string
+}
+
 variable "lan_id" {
-  description = "LAN ID for the infrastructure"
+  description = "LAN ID for the PostgreSQL cluster"
   type        = string
 }
 
 variable "allowed_cidr" {
-  description = "CIDR block allowed to connect to services"
+  description = "CIDR block allowed to connect to PostgreSQL"
   type        = string
   default     = "10.0.0.0/8"
 }
@@ -79,13 +75,13 @@ variable "maintenance_time" {
   default     = "03:00:00"
 }
 
-variable "postgres_admin_username" {
+variable "admin_username" {
   description = "Admin username for PostgreSQL"
   type        = string
   sensitive   = true
 }
 
-variable "postgres_admin_password" {
+variable "admin_password" {
   description = "Admin password for PostgreSQL"
   type        = string
   sensitive   = true

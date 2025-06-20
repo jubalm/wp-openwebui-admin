@@ -7,62 +7,63 @@ variable "ionos_token" {
   sensitive   = true
 }
 
-variable "datacenter_id" {
-  description = "IONOS datacenter ID"
-  type        = string
-}
-
 variable "lan_id" {
-  description = "LAN ID for the MariaDB cluster"
+  description = "LAN ID for the infrastructure"
   type        = string
   default     = "1"
 }
 
 variable "location" {
-  description = "Location for the MariaDB cluster"
+  description = "Location for the infrastructure"
   type        = string
   default     = "de/fra"
 }
 
-# MariaDB cluster configuration
-variable "cluster_name" {
-  description = "Display name for the MariaDB cluster"
+# PostgreSQL cluster configuration for Authentik
+variable "postgres_cluster_name" {
+  description = "Display name for the PostgreSQL cluster"
   type        = string
-  default     = "wp-openwebui-mariadb"
+  default     = "authentik-postgres"
 }
 
-variable "mariadb_version" {
-  description = "MariaDB version"
+variable "postgres_version" {
+  description = "PostgreSQL version"
   type        = string
-  default     = "10.6"
+  default     = "15"
 }
 
-variable "instances" {
-  description = "Number of MariaDB instances"
+variable "postgres_instances" {
+  description = "Number of PostgreSQL instances"
   type        = number
   default     = 1
 }
 
-variable "cores" {
-  description = "Number of CPU cores per instance"
+variable "postgres_cores" {
+  description = "Number of CPU cores per PostgreSQL instance"
   type        = number
   default     = 2
 }
 
-variable "ram" {
-  description = "RAM in MB per instance"
+variable "postgres_ram" {
+  description = "RAM in MB per PostgreSQL instance"
   type        = number
   default     = 4096
 }
 
-variable "storage_size" {
-  description = "Storage size in GB"
+variable "postgres_storage_size" {
+  description = "Storage size in GB for PostgreSQL"
   type        = number
   default     = 20
 }
 
+variable "postgres_storage_type" {
+  description = "Storage type for PostgreSQL"
+  type        = string
+  default     = "HDD"
+}
+
 variable "allowed_cidr" {
-  description = "CIDR block allowed to connect to MariaDB"
+  description = "CIDR block allowed to connect to services"
   type        = string
   default     = "10.0.0.0/8"
 }
@@ -79,14 +80,14 @@ variable "maintenance_time" {
   default     = "03:00:00"
 }
 
-variable "mariadb_admin_user" {
-  description = "MariaDB admin username"
+variable "postgres_admin_username" {
+  description = "PostgreSQL admin username"
   type        = string
   sensitive   = true
 }
 
-variable "mariadb_admin_password" {
-  description = "MariaDB admin password"
+variable "postgres_admin_password" {
+  description = "PostgreSQL admin password"
   type        = string
   sensitive   = true
 }

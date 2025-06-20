@@ -1,4 +1,4 @@
-# IONOS infrastructure setup - MariaDB cluster
+# IONOS infrastructure setup - PostgreSQL cluster for Authentik
 # This should be deployed first before tenant configurations
 
 terraform {
@@ -15,29 +15,30 @@ provider "ionoscloud" {
   token = var.ionos_token
 }
 
-# Deploy shared infrastructure (MariaDB cluster)
+# Deploy shared infrastructure (datacenter + PostgreSQL cluster for Authentik)
 module "infrastructure" {
   source = "../../modules/infrastructure"
   
   # IONOS Cloud configuration
-  datacenter_id = var.datacenter_id
-  lan_id        = var.lan_id
-  location      = var.location
+  ionos_token = var.ionos_token
+  lan_id      = var.lan_id
+  location    = var.location
   
-  # MariaDB cluster configuration
-  cluster_name    = var.cluster_name
-  mariadb_version = var.mariadb_version
-  instances       = var.instances
-  cores          = var.cores
-  ram            = var.ram
-  storage_size   = var.storage_size
+  # PostgreSQL cluster configuration for Authentik
+  postgres_cluster_name    = var.postgres_cluster_name
+  postgres_version         = var.postgres_version
+  postgres_instances       = var.postgres_instances
+  postgres_cores          = var.postgres_cores
+  postgres_ram            = var.postgres_ram
+  postgres_storage_size   = var.postgres_storage_size
+  postgres_storage_type   = var.postgres_storage_type
   
   # Security
   allowed_cidr = var.allowed_cidr
   
   # Credentials
-  admin_username = var.mariadb_admin_user
-  admin_password = var.mariadb_admin_password
+  postgres_admin_username = var.postgres_admin_username
+  postgres_admin_password = var.postgres_admin_password
   
   # Maintenance
   maintenance_day  = var.maintenance_day

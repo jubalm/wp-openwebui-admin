@@ -7,30 +7,38 @@ terraform {
   }
 }
 
-# Create the shared MariaDB cluster for all tenants
-module "mariadb_cluster" {
-  source = "../mariadb-cluster"
+# Create the datacenter for the infrastructure
+module "datacenter" {
+  source = "../datacenter"
   
-  cluster_name = var.cluster_name
+  ionos_token = var.ionos_token
+}
+
+# Create PostgreSQL cluster for Authentik
+module "postgres_cluster" {
+  source = "../postgres-cluster"
+  
+  cluster_name = var.postgres_cluster_name
   
   # Infrastructure configuration
-  datacenter_id = var.datacenter_id
+  datacenter_id = module.datacenter.datacenter_id
   lan_id        = var.lan_id
   location      = var.location
   
   # Database configuration
-  mariadb_version = var.mariadb_version
-  instances       = var.instances
-  cores          = var.cores
-  ram            = var.ram
-  storage_size   = var.storage_size
+  postgres_version = var.postgres_version
+  instances        = var.postgres_instances
+  cores           = var.postgres_cores
+  ram             = var.postgres_ram
+  storage_size    = var.postgres_storage_size
+  storage_type    = var.postgres_storage_type
   
   # Security
   allowed_cidr = var.allowed_cidr
   
   # Credentials
-  admin_username = var.admin_username
-  admin_password = var.admin_password
+  admin_username = var.postgres_admin_username
+  admin_password = var.postgres_admin_password
   
   # Maintenance
   maintenance_day  = var.maintenance_day

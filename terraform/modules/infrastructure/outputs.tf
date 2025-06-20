@@ -1,32 +1,33 @@
-# Output the MariaDB cluster details for use by tenant modules
-output "mariadb_cluster_id" {
-  description = "The ID of the MariaDB cluster"
-  value       = module.mariadb_cluster.cluster_id
+# Output the datacenter details for use by tenant modules
+output "datacenter_id" {
+  description = "The ID of the datacenter"
+  value       = module.datacenter.datacenter_id
 }
 
-output "mariadb_cluster_host" {
-  description = "The hostname of the MariaDB cluster"
-  value       = module.mariadb_cluster.cluster_host
+output "datacenter_location" {
+  description = "The location of the datacenter"
+  value       = module.datacenter.datacenter_location
 }
 
-output "mariadb_cluster_port" {
-  description = "The port of the MariaDB cluster"
-  value       = module.mariadb_cluster.cluster_port
+# Output the PostgreSQL cluster details for Authentik
+output "postgres_cluster_id" {
+  description = "The ID of the PostgreSQL cluster"
+  value       = module.postgres_cluster.cluster_id
 }
 
-output "mariadb_admin_username" {
-  description = "Admin username for the MariaDB cluster"
-  value       = module.mariadb_cluster.admin_username
+output "postgres_cluster_dns_name" {
+  description = "The DNS name of the PostgreSQL cluster"
+  value       = module.postgres_cluster.cluster_dns_name
+}
+
+output "postgres_admin_username" {
+  description = "Admin username for the PostgreSQL cluster"
+  value       = module.postgres_cluster.admin_username
   sensitive   = true
 }
 
-output "mariadb_admin_password" {
-  description = "Admin password for the MariaDB cluster"
-  value       = module.mariadb_cluster.admin_password
+output "postgres_admin_password" {
+  description = "Admin password for the PostgreSQL cluster"
+  value       = module.postgres_cluster.admin_password
   sensitive   = true
-}
-
-output "mariadb_connection_string" {
-  description = "Connection string for the MariaDB cluster"
-  value       = module.mariadb_cluster.connection_string
 }
