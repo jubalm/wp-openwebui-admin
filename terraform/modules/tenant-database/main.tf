@@ -15,13 +15,6 @@ terraform {
   }
 }
 
-# Configure MySQL provider for IONOS MariaDB
-provider "mysql" {
-  endpoint = "${var.mariadb_host}:${var.mariadb_port}"
-  username = var.mariadb_admin_user
-  password = var.mariadb_admin_password
-}
-
 # Local values for consistent naming
 locals {
   database_name = replace("wp_${var.tenant_id}", "-", "_")

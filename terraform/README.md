@@ -17,15 +17,31 @@ The simplified PoC architecture includes:
 ```
 terraform/
 ├── modules/
-│   ├── tenant-namespace/    # Kubernetes namespace with basic RBAC
-│   ├── tenant-database/     # MariaDB database and user creation
-│   ├── tenant-wordpress/    # WordPress deployment with MCP plugin
-│   └── tenant/             # Main orchestrating module
+│   ├── infrastructure/       # Shared infrastructure (MariaDB cluster)
+│   ├── mariadb-cluster/      # IONOS MariaDB cluster resource
+│   ├── tenant-namespace/     # Kubernetes namespace with basic RBAC
+│   ├── tenant-database/      # MariaDB database and user creation
+│   ├── tenant-wordpress/     # WordPress deployment with MCP plugin
+│   └── tenant/              # Main orchestrating module
 └── examples/
-    └── single-tenant/      # Example tenant configuration
+    ├── infrastructure/      # Infrastructure deployment example
+    └── single-tenant/       # Example tenant configuration
 ```
 
 ## Modules
+
+### infrastructure
+Provisions shared infrastructure components:
+- Creates IONOS MariaDB cluster for all tenants
+- Configurable cluster sizing and maintenance windows
+- Outputs connection details for tenant modules
+
+### mariadb-cluster
+Creates the actual IONOS MariaDB cluster resource:
+- `ionoscloud_mariadb_cluster` resource
+- Network security configuration
+- Maintenance window settings
+- Admin credentials management
 
 ### tenant-namespace
 Creates an isolated Kubernetes namespace for a tenant's WordPress instance with:
@@ -57,45 +73,53 @@ Orchestrates all components for a complete tenant deployment:
 
 ### Prerequisites
 
-1. **IONOS Managed Kubernetes cluster** set up and accessible
-2. **IONOS MariaDB managed database cluster** provisioned
-3. **Authentik SSO** deployed and configured (shared platform component)
-4. **Terraform** installed with required providers
-5. **kubectl** configured for your IONOS Kubernetes cluster
+1. **IONOS Cloud account** with API token access
+2. **IONOS Managed Kubernetes cluster** set up and accessible
+3. **Terraform** installed with required providers
+4. **kubectl** configured for your IONOS Kubernetes cluster
 
-### Quick Start
+### Deployment Process
 
-1. Navigate to the example directory:
-   ```bash
-   cd terraform/examples/single-tenant
-   ```
+The deployment follows a two-step process:
 
-2. Copy and configure variables:
-   ```bash
-   cp terraform.tfvars.example terraform.tfvars
-   # Edit terraform.tfvars with your actual values
-   ```
+#### Step 1: Deploy Infrastructure
+First, deploy the shared infrastructure (MariaDB cluster):
 
-3. Initialize Terraform:
-   ```bash
-   terraform init
-   ```
+```bash
+cd terraform/examples/infrastructure
+cp terraform.tfvars.example terraform.tfvars
+# Edit terraform.tfvars with your IONOS Cloud credentials and configuration
+terraform init
+terraform plan
+terraform apply
+```
 
-4. Plan the deployment:
-   ```bash
-   terraform plan
-   ```
+#### Step 2: Deploy Tenants
+Then deploy individual tenants using the MariaDB cluster from step 1:
 
-5. Deploy the tenant:
-   ```bash
-   terraform apply
-   ```
+```bash
+cd terraform/examples/single-tenant
+cp terraform.tfvars.example terraform.tfvars
+# Edit terraform.tfvars with MariaDB connection details from step 1
+terraform init
+terraform plan
+terraform apply
+```
 
 ### Configuration
 
-The main variables you need to configure:
+#### Infrastructure Variables
+For the infrastructure deployment:
+- `ionos_token` - Your IONOS Cloud API token
+- `datacenter_id` - IONOS datacenter ID where resources will be created
+- `lan_id` - LAN ID for the MariaDB cluster
+- `mariadb_admin_user/password` - Admin credentials for MariaDB cluster
+- `cluster_name` - Display name for the MariaDB cluster
+- `location` - Geographic location (e.g., "de/fra")
 
-- `mariadb_host` - Your IONOS MariaDB cluster endpoint
+#### Tenant Variables
+For tenant deployments:
+- `mariadb_host` - MariaDB cluster hostname (from infrastructure outputs)
 - `mariadb_admin_user/password` - Admin credentials for MariaDB
 - `authentik_issuer_url` - Your Authentik SSO instance URL
 - `authentik_client_secret` - OIDC client secret for WordPress integration
@@ -111,8 +135,9 @@ The main variables you need to configure:
 ### IONOS Cloud Integration
 - **Managed Kubernetes**: Uses IONOS Managed Kubernetes service
 - **LoadBalancers**: Automatic IONOS LoadBalancer provisioning
-- **MariaDB**: Integration with IONOS managed database cluster
+- **MariaDB**: Fully managed IONOS MariaDB cluster with automated provisioning
 - **Storage**: Uses IONOS CSI driver for persistent volumes
+- **Infrastructure as Code**: Complete infrastructure provisioning via Terraform
 
 ### Security
 - Namespace-based tenant isolation
